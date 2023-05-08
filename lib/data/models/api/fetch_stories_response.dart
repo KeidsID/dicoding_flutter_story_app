@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'api_story_response.dart';
+import 'story_obj_response.dart';
 
 /// Object model for `GET /stories` endpoint response from API.
 class FetchStoriesResponse {
   final bool error;
   final String message;
-  final List<ApiStoryResponse> listStory;
+  final List<StoryObjResponse> listStory;
 
   const FetchStoriesResponse({
     required this.error,
@@ -26,9 +26,9 @@ class FetchStoriesResponse {
     return FetchStoriesResponse(
       error: map['error'] as bool,
       message: map['message'] as String,
-      listStory: List<ApiStoryResponse>.from(
-        (map['listStory'] as List).map<ApiStoryResponse>(
-          (x) => ApiStoryResponse.fromMap(x as Map<String, dynamic>),
+      listStory: List<StoryObjResponse>.from(
+        (map['listStory'] as List).map<StoryObjResponse>(
+          (x) => StoryObjResponse.fromMap(x as Map<String, dynamic>),
         ),
       ),
     );

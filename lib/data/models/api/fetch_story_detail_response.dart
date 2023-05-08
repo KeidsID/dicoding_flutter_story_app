@@ -1,13 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-import 'api_story_response.dart';
+import 'story_obj_response.dart';
 
 /// Object model for `GET /stories/:id` endpoint response from API.
 class FetchStoryDetailResponse {
   final bool error;
   final String message;
-  final ApiStoryResponse story;
+  final StoryObjResponse story;
 
   const FetchStoryDetailResponse({
     required this.error,
@@ -27,7 +27,7 @@ class FetchStoryDetailResponse {
     return FetchStoryDetailResponse(
       error: map['error'] as bool,
       message: map['message'] as String,
-      story: ApiStoryResponse.fromMap(map['story'] as Map<String, dynamic>),
+      story: StoryObjResponse.fromMap(map['story'] as Map<String, dynamic>),
     );
   }
 

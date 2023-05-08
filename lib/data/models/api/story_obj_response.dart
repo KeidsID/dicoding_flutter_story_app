@@ -1,5 +1,5 @@
 /// The object model for the `Story` object in the API response
-class ApiStoryResponse {
+class StoryObjResponse {
   final String id;
   final String name;
   final String description;
@@ -8,7 +8,7 @@ class ApiStoryResponse {
   final double lat;
   final double lon;
 
-  const ApiStoryResponse({
+  const StoryObjResponse({
     required this.id,
     required this.name,
     required this.description,
@@ -30,8 +30,8 @@ class ApiStoryResponse {
     };
   }
 
-  factory ApiStoryResponse.fromMap(Map<String, dynamic> map) {
-    return ApiStoryResponse(
+  factory StoryObjResponse.fromMap(Map<String, dynamic> map) {
+    return StoryObjResponse(
       id: map['id'] as String,
       name: map['name'] as String,
       description: map['description'] as String,

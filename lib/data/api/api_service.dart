@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:core/core.dart';
 import 'package:http/http.dart';
 
 import '../models/api/fetch_stories_response.dart';
@@ -26,7 +27,7 @@ class ApiService {
   ///
   /// Method to register as an app user.
   ///
-  /// Will throw an [Exception] if an error occurs.
+  /// Will throw an [HttpResponseException] if an error occurs.
   ///
   /// Request Body:
   /// - `name` as `String`
@@ -37,7 +38,9 @@ class ApiService {
     required String email,
     required String password,
   }) async {
-    if (password.length < 6) throw Exception('Password too short');
+    if (password.length < 6) {
+      throw HttpResponseException(400, message: 'Password too short');
+    }
 
     try {
       final response = await client.post(
@@ -49,11 +52,13 @@ class ApiService {
         }),
       );
 
-      if (response.statusCode != 201) throw Exception('Failed to register');
+      if (response.statusCode != 201) {
+        throw HttpResponseException(response.statusCode);
+      }
 
       return CommonResponse.fromJson(response.body);
     } catch (e) {
-      throw Exception('Failed to register');
+      throw HttpResponseException(500);
     }
   }
 
@@ -61,7 +66,7 @@ class ApiService {
   ///
   /// Method to login as a registered user.
   ///
-  /// Will throw an [Exception] if an error occurs.
+  /// Will throw an [HttpResponseException] if an error occurs.
   ///
   /// Request Body:
   /// - `email` as `String`
@@ -79,11 +84,13 @@ class ApiService {
         }),
       );
 
-      if (response.statusCode != 201) throw Exception('Failed to login');
+      if (response.statusCode != 201) {
+        throw HttpResponseException(response.statusCode);
+      }
 
       return LoginResponse.fromJson(response.body);
     } catch (e) {
-      throw Exception('Failed to login');
+      throw HttpResponseException(500);
     }
   }
 
@@ -91,7 +98,7 @@ class ApiService {
   ///
   /// Methods for adding story to the API.
   ///
-  /// Will throw an [Exception] if an error occurs.
+  /// Will throw an [HttpResponseException] if an error occurs.
   ///
   /// Headers:
   /// - `Content-Type`: `multipart/form-data`
@@ -130,14 +137,14 @@ class ApiService {
       final StreamedResponse responseStream = await client.send(request);
       final int statusCode = responseStream.statusCode;
 
-      if (statusCode != 201) throw Exception('Failed to post your story');
+      if (statusCode != 201) throw HttpResponseException(statusCode);
 
       final List<int> responseBodyBytes = await responseStream.stream.toBytes();
       final String responseBody = String.fromCharCodes(responseBodyBytes);
 
       return CommonResponse.fromJson(responseBody);
     } catch (e) {
-      throw Exception('Failed to post your story');
+      throw HttpResponseException(500);
     }
   }
 
@@ -145,7 +152,7 @@ class ApiService {
   ///
   /// Method to fetch stories from the API.
   ///
-  /// Will throw an [Exception] if an error occurs.
+  /// Will throw an [HttpResponseException] if an error occurs.
   ///
   /// Headers:
   /// - `Authorization`: `Bearer <token>`
@@ -180,12 +187,12 @@ class ApiService {
       final response = await client.get(url);
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to fetch stories');
+        throw HttpResponseException(response.statusCode);
       }
 
       return FetchStoriesResponse.fromJson(response.body);
     } catch (e) {
-      throw Exception('Failed to fetch stories');
+      throw HttpResponseException(500);
     }
   }
 
@@ -193,7 +200,7 @@ class ApiService {
   ///
   /// Method to fetch the details of the requested story (based on the story id).
   ///
-  /// Will throw an [Exception] if an error occurs.
+  /// Will throw an [HttpResponseException] if an error occurs.
   ///
   /// Headers:
   /// - `Authorization`: `Bearer <token>`
@@ -209,12 +216,12 @@ class ApiService {
       });
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to fetch story detail');
+        throw HttpResponseException(response.statusCode);
       }
 
       return FetchStoryDetailResponse.fromJson(response.body);
     } catch (e) {
-      throw Exception('Failed to fetch story detail');
+      throw HttpResponseException(500);
     }
   }
 }
