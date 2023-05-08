@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:http/http.dart';
 
 import '../models/api/fetch_stories_response.dart';
@@ -24,7 +26,7 @@ class ApiService {
   ///
   /// Method to register as an app user.
   ///
-  /// Will throw an [Exception] if an error occurs (such as invalid password).
+  /// Will throw an [Exception] if an error occurs.
   ///
   /// Request Body:
   /// - `name` as `String`
@@ -34,13 +36,32 @@ class ApiService {
     required String name,
     required String email,
     required String password,
-  }) async {}
+  }) async {
+    if (password.length < 6) throw Exception('Password too short');
+
+    try {
+      final response = await client.post(
+        Uri.parse('$_baseUrl/register'),
+        body: jsonEncode(<String, dynamic>{
+          'name': name,
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode != 201) throw Exception('Failed to register');
+
+      return CommonResponse.fromJson(response.body);
+    } catch (e) {
+      throw Exception('Failed to register');
+    }
+  }
 
   /// `POST /login`
   ///
   /// Method to login as a registered user.
   ///
-  /// Will throw an [Exception] if an error occurs (such as invalid password).
+  /// Will throw an [Exception] if an error occurs.
   ///
   /// Request Body:
   /// - `email` as `String`
@@ -48,7 +69,23 @@ class ApiService {
   Future<LoginResponse> login({
     required String email,
     required String password,
-  }) async {}
+  }) async {
+    try {
+      final response = await client.post(
+        Uri.parse('$_baseUrl/register'),
+        body: jsonEncode(<String, dynamic>{
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode != 201) throw Exception('Failed to login');
+
+      return LoginResponse.fromJson(response.body);
+    } catch (e) {
+      throw Exception('Failed to login');
+    }
+  }
 
   /// `POST /stories`
   ///
@@ -65,13 +102,44 @@ class ApiService {
   /// - `photo` as `Image File`, max size 1MB
   /// - `lat` as `double`, optional
   /// - `lon` as `double`, optional
-  Future<CommonResponse> addStory({
+  Future<CommonResponse> postStory({
     required String token,
     required String description,
     required List<int> photo,
     double? lat,
     double? lon,
-  }) async {}
+  }) async {
+    final request = MultipartRequest('POST', Uri.parse('$_baseUrl/stories'));
+
+    final Map<String, String> headers = {
+      'Content-Type': 'multipart/form-data',
+      'Authorization': 'Bearer $token'
+    };
+    final Map<String, String> reqBodyFields = {'description': description};
+
+    if (lat != null) reqBodyFields.addAll({'lat': '$lat'});
+    if (lon != null) reqBodyFields.addAll({'lon': '$lon'});
+
+    final photoFile = MultipartFile.fromBytes('photo', photo);
+
+    request.headers.addAll(headers);
+    request.fields.addAll(reqBodyFields);
+    request.files.add(photoFile);
+
+    try {
+      final StreamedResponse responseStream = await client.send(request);
+      final int statusCode = responseStream.statusCode;
+
+      if (statusCode != 201) throw Exception('Failed to post your story');
+
+      final List<int> responseBodyBytes = await responseStream.stream.toBytes();
+      final String responseBody = String.fromCharCodes(responseBodyBytes);
+
+      return CommonResponse.fromJson(responseBody);
+    } catch (e) {
+      throw Exception('Failed to post your story');
+    }
+  }
 
   /// `GET /stories`
   ///
@@ -94,7 +162,32 @@ class ApiService {
     int? page,
     int? size,
     LocationQuery? location,
-  }) async {}
+  }) async {
+    final Map<String, dynamic> queryParams = {
+      'page': page,
+      'size': size,
+      'location': (location == null)
+          ? location
+          : (location == LocationQuery.one)
+              ? '1'
+              : '0',
+    };
+    final url = Uri.parse('$_baseUrl/stories').replace(
+      queryParameters: queryParams,
+    );
+
+    try {
+      final response = await client.get(url);
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to fetch stories');
+      }
+
+      return FetchStoriesResponse.fromJson(response.body);
+    } catch (e) {
+      throw Exception('Failed to fetch stories');
+    }
+  }
 
   /// `GET /stories/:id`
   ///
@@ -107,5 +200,21 @@ class ApiService {
   Future<FetchStoryDetailResponse> fetchStoryDetail({
     required String token,
     required String id,
-  }) async {}
+  }) async {
+    final url = Uri.parse('$_baseUrl/stories/$id');
+
+    try {
+      final response = await client.get(url, headers: {
+        'Authorization': 'Bearer $token',
+      });
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to fetch story detail');
+      }
+
+      return FetchStoryDetailResponse.fromJson(response.body);
+    } catch (e) {
+      throw Exception('Failed to fetch story detail');
+    }
+  }
 }

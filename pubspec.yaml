@@ -1,14 +1,17 @@
 name: dicoding_flutter_story_app
-description: Projects from Dicoding as an exercise in advanced navigation, use of media (audio, images, and video), and use of maps such as Google Map.
-publish_to: 'none'
+description:
+  Projects from Dicoding as an exercise in advanced navigation, use of media
+  (audio, images, and video), and use of maps such as Google Map.
+publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: '>=2.19.6 <3.0.0'
+  sdk: ">=2.19.6 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
+
   go_router: ^7.0.0
   http: ^0.13.6
   provider: ^6.0.5
