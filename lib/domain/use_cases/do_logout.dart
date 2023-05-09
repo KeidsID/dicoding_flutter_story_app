@@ -1,12 +1,12 @@
 import '../repositories/story_repository.dart';
 
-class Logout {
+class DoLogout {
   final StoryRepository repository;
 
-  const Logout(this.repository);
+  const DoLogout(this.repository);
 
   /// Remove log in token from the app cache.
   ///
   /// Return false if fail.
-  Future<bool> execute() => repository.logout();
+  Future<bool> execute() => repository.doLogout();
 }

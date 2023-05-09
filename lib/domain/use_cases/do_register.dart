@@ -2,10 +2,10 @@ import 'package:core/core.dart';
 
 import '../repositories/story_repository.dart';
 
-class Register {
+class DoRegister {
   final StoryRepository repository;
 
-  const Register(this.repository);
+  const DoRegister(this.repository);
 
   /// Register as new user to Dicoding Story API.
   ///
@@ -15,6 +15,6 @@ class Register {
     required String email,
     required String password,
   }) {
-    return repository.register(name: name, email: email, password: password);
+    return repository.doRegister(name: name, email: email, password: password);
   }
 }

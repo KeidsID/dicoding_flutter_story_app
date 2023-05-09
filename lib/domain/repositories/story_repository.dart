@@ -1,13 +1,13 @@
 abstract class StoryRepository {
-  Future<void> register({
+  Future<void> doRegister({
     required String name,
     required String email,
     required String password,
   });
-  Future<String> login({
+  Future<void> doLogin({
     required String email,
     required String password,
   });
   String? getLoginToken();
-  Future<bool> logout();
+  Future<bool> doLogout();
 }

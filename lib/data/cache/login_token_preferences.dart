@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Preferences that handle log in tokens.
+/// Service that handles login tokens in the app cache.
 class LoginTokenPreferences {
   final SharedPreferences pref;
   static LoginTokenPreferences? instance;
@@ -12,7 +12,7 @@ class LoginTokenPreferences {
     instance = this;
   }
 
-  static const _prefKey = 'auth.login.token';
+  static const _prefKey = 'auth.loginToken';
 
   Future<bool> saveToken(String token) => pref.setString(_prefKey, token);
 

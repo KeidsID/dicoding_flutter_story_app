@@ -1,10 +1,10 @@
 import '../repositories/story_repository.dart';
 
-class GetApiToken {
+class GetLoginToken {
   final StoryRepository repository;
 
-  const GetApiToken(this.repository);
+  const GetLoginToken(this.repository);
 
-  /// Fetch log in token from the cache if available.
+  /// Fetch log in token from the app cache if available.
   String? execute() => repository.getLoginToken();
 }

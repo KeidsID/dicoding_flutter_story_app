@@ -1,15 +1,84 @@
+import 'package:core/core.dart';
 import 'package:flutter/material.dart';
+
+import '../../domain/use_cases/do_login.dart';
+import '../../domain/use_cases/do_logout.dart';
+import '../../domain/use_cases/do_register.dart';
+import '../../domain/use_cases/get_login_token.dart';
 
 enum AuthProviderState { loading, loggedIn, loggedOut }
 
 class AuthProvider extends ChangeNotifier {
-  AuthProvider();
+  final DoLogin doLogin;
+  final DoLogout doLogout;
+  final DoRegister doRegister;
+  final GetLoginToken getLoginToken;
+
+  AuthProvider({
+    required this.doLogin,
+    required this.doLogout,
+    required this.doRegister,
+    required this.getLoginToken,
+  }) {
+    _fetchToken();
+  }
 
   AuthProviderState _state = AuthProviderState.loggedOut;
+  String? _loginToken;
+
+  String? get loginToken => _loginToken;
 
   AuthProviderState get state => _state;
   set state(AuthProviderState value) {
     _state = value;
     notifyListeners();
+  }
+
+  void _fetchToken() {
+    _loginToken = getLoginToken.execute();
+
+    state = (_loginToken == null)
+        ? AuthProviderState.loggedOut
+        : AuthProviderState.loggedIn;
+  }
+
+  /// Log in to Dicoding Story API, then update [state] and [loginToken] based
+  /// on the results.
+  ///
+  /// Will throw a [HttpResponseException] if an error occurs.
+  Future<void> login({required String email, required String password}) async {
+    state = AuthProviderState.loading;
+
+    await doLogin.execute(email: email, password: password);
+
+    _fetchToken();
+  }
+
+  /// Log out by deleting the login token in the cache, then update [state] and
+  /// [loginToken] based on the results.
+  Future<void> logout() async {
+    state = AuthProviderState.loading;
+
+    await doLogout.execute();
+
+    _fetchToken();
+  }
+
+  /// Register as new user to Dicoding Story API, then update [state] and
+  /// [loginToken] based on the results.
+  ///
+  /// This method does not have [login] feature after completion.
+  ///
+  /// Will throw a [HttpResponseException] if an error occurs.
+  Future<void> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    state = AuthProviderState.loading;
+
+    await doRegister.execute(name: name, email: email, password: password);
+
+    _fetchToken();
   }
 }
