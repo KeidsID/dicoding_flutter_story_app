@@ -45,6 +45,7 @@ class _RegisterPageState extends State<RegisterPage> {
           children: [
             Text('Register', style: context.textTheme.headlineLarge),
             const SizedBox(height: 16.0),
+            // Name field
             SizedBox(
               width: textFieldMinWidth,
               child: TextField(
@@ -55,6 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: nameController,
               ),
             ),
+            // Email field
             SizedBox(
               width: textFieldMinWidth,
               child: TextField(
@@ -65,6 +67,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: emailController,
               ),
             ),
+            // Password field
             SizedBox(
               width: textFieldMinWidth,
               child: TextField(

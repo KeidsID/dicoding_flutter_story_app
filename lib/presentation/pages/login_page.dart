@@ -42,6 +42,7 @@ class _LoginPageState extends State<LoginPage> {
           children: [
             Text(appName, style: context.textTheme.headlineLarge),
             const SizedBox(height: 16.0),
+            // Email field
             SizedBox(
               width: textFieldMinWidth,
               child: TextField(
@@ -52,6 +53,7 @@ class _LoginPageState extends State<LoginPage> {
                 controller: emailController,
               ),
             ),
+            // Password field
             SizedBox(
               width: textFieldMinWidth,
               child: TextField(
@@ -73,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 16.0),
-            FilledButton(onPressed: () {}, child: const Text('Login')),
+            FilledButton(onPressed: () {}, child: const Text('Log In')),
             const SizedBox(height: 16.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

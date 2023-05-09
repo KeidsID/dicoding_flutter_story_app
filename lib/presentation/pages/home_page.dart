@@ -5,8 +5,18 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Home Page')),
+    return Scaffold(
+      body: Center(
+        child: Column(
+          children: [
+            const Text('Home Page'),
+            FilledButton(
+              onPressed: () {},
+              child: const Text('Log Out'),
+            )
+          ],
+        ),
+      ),
     );
   }
 }

@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/api/api_service.dart';
 import 'data/cache/login_token_preferences.dart';
-import 'presentation/pages/register_page.dart';
+import 'presentation/pages/home_page.dart';
 
 void main() async {
   core.init(
@@ -37,7 +37,7 @@ class MainApp extends StatelessWidget {
       themeMode: ThemeMode.dark,
       localizationsDelegates: CoreLocalizations.localizationsDelegates,
       supportedLocales: CoreLocalizations.supportedLocales,
-      home: const RegisterPage(),
+      home: const HomePage(),
     );
   }
 }

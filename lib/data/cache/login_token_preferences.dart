@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Preferences that handle login tokens.
+/// Preferences that handle log in tokens.
 class LoginTokenPreferences {
   final SharedPreferences pref;
   static LoginTokenPreferences? instance;
@@ -18,5 +18,5 @@ class LoginTokenPreferences {
 
   String? getToken() => pref.getString(_prefKey);
 
-  removeToken() => pref.remove(_prefKey);
+  Future<bool> removeToken() => pref.remove(_prefKey);
 }
