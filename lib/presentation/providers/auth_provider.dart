@@ -6,7 +6,7 @@ import '../../domain/use_cases/do_logout.dart';
 import '../../domain/use_cases/do_register.dart';
 import '../../domain/use_cases/get_login_token.dart';
 
-enum AuthProviderState { loading, loggedIn, loggedOut }
+enum AuthProviderState { loading, loggedIn, loggedOut, error }
 
 class AuthProvider extends ChangeNotifier {
   final DoLogin doLogin;
@@ -56,6 +56,8 @@ class AuthProvider extends ChangeNotifier {
 
   /// Log out by deleting the login token in the cache, then update [state] and
   /// [loginToken] based on the results.
+  ///
+  /// Will throw a [HttpResponseException] if an error occurs.
   Future<void> logout() async {
     state = AuthProviderState.loading;
 
@@ -64,10 +66,8 @@ class AuthProvider extends ChangeNotifier {
     _fetchToken();
   }
 
-  /// Register as new user to Dicoding Story API, then update [state] and
-  /// [loginToken] based on the results.
-  ///
-  /// This method does not have [login] feature after completion.
+  /// Register as new user to Dicoding Story API, then call [login] after the
+  /// register process is complete.
   ///
   /// Will throw a [HttpResponseException] if an error occurs.
   Future<void> register({
@@ -79,6 +79,6 @@ class AuthProvider extends ChangeNotifier {
 
     await doRegister.execute(name: name, email: email, password: password);
 
-    _fetchToken();
+    await login(email: email, password: password);
   }
 }

@@ -1,12 +1,11 @@
 import 'package:core/core.dart' as core;
 import 'package:core/l10n/generated/core_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
-import 'data/api/api_service.dart';
-import 'data/cache/login_token_preferences.dart';
-import 'presentation/pages/home_page.dart';
+import 'presentation/providers/auth_provider.dart';
+import 'router/router.dart';
+import 'service_locator/locator.dart' as service_locator;
 
 void main() async {
   core.init(
@@ -15,13 +14,16 @@ void main() async {
     useMaterial3: true,
   );
 
-  ApiService(http.Client());
+  await service_locator.init();
 
-  final pref = await SharedPreferences.getInstance();
-
-  LoginTokenPreferences(pref);
-
-  runApp(const MainApp());
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider<AuthProvider>.value(
+        value: service_locator.locator(),
+      ),
+    ],
+    child: const MainApp(),
+  ));
 }
 
 class MainApp extends StatelessWidget {
@@ -29,7 +31,8 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
+      routerConfig: router,
       debugShowCheckedModeBanner: false,
       title: core.appName,
       theme: core.AppThemes.light,
@@ -37,7 +40,6 @@ class MainApp extends StatelessWidget {
       themeMode: ThemeMode.dark,
       localizationsDelegates: CoreLocalizations.localizationsDelegates,
       supportedLocales: CoreLocalizations.supportedLocales,
-      home: const HomePage(),
     );
   }
 }

@@ -13,7 +13,7 @@ API for this project: https://story-api.dicoding.dev/v1/
 
 ### Mandatory Tasks
 
-- [ ] Authentication Pages.
+- [x] Authentication Pages.
 - [ ] Story Pages.
 - [ ] Add Story Page.
 - [ ] Advanced Navigation.

@@ -38,7 +38,16 @@ class StoryRepositoryImpl implements StoryRepository {
   }
 
   @override
-  Future<bool> doLogout() => loginTokenPreferences.removeToken();
+  Future<void> doLogout() async {
+    final isSuccess = await loginTokenPreferences.removeToken();
+
+    if (!isSuccess) {
+      throw throw HttpResponseException(
+        500,
+        message: 'Token is not removed. Please re-log out',
+      );
+    }
+  }
 
   @override
   Future<void> doRegister({

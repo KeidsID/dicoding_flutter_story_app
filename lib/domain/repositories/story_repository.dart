@@ -9,5 +9,5 @@ abstract class StoryRepository {
     required String password,
   });
   String? getLoginToken();
-  Future<bool> doLogout();
+  Future<void> doLogout();
 }

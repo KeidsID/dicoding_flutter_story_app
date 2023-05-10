@@ -1,25 +1,18 @@
-import 'dart:convert';
-
 import 'package:core/core.dart';
 import 'package:http/http.dart';
 
-import '../models/api/fetch_stories_response.dart';
-import '../models/api/login_response.dart';
-import '../models/api/fetch_story_detail_response.dart';
 import '../models/api/common_response.dart';
+import '../models/api/fetch_stories_response.dart';
+import '../models/api/fetch_story_detail_response.dart';
+import '../models/api/login_response.dart';
 
 enum LocationQuery { one, zero }
 
 /// Service to handle the Dicoding Story API.
 class ApiService {
   final Client client;
-  static ApiService? instance;
 
-  factory ApiService(Client client) => instance ?? ApiService._init(client);
-
-  ApiService._init(this.client) {
-    instance = this;
-  }
+  const ApiService(this.client);
 
   static const _baseUrl = 'https://story-api.dicoding.dev/v1';
 
@@ -32,31 +25,36 @@ class ApiService {
   /// Request Body:
   /// - `name` as `String`
   /// - `email` as `String`, unique
-  /// - `password` as `String`, min. 6 characters
+  /// - `password` as `String`, min. 8 characters
   Future<CommonResponse> register({
     required String name,
     required String email,
     required String password,
   }) async {
-    if (password.length < 6) {
+    if (password.length < 8) {
       throw HttpResponseException(400, message: 'Password too short');
     }
 
     try {
-      final response = await client.post(
+      final rawResponse = await client.post(
         Uri.parse('$_baseUrl/register'),
-        body: jsonEncode(<String, dynamic>{
+        body: <String, String>{
           'name': name,
           'email': email,
           'password': password,
-        }),
+        },
       );
 
-      if (response.statusCode != 201) {
-        throw HttpResponseException(response.statusCode);
+      final response = CommonResponse.fromJson(rawResponse.body);
+
+      if (rawResponse.statusCode != 201) {
+        throw HttpResponseException(
+          rawResponse.statusCode,
+          message: response.message,
+        );
       }
 
-      return CommonResponse.fromJson(response.body);
+      return response;
     } catch (e) {
       throw HttpResponseException(500);
     }
@@ -76,21 +74,26 @@ class ApiService {
     required String password,
   }) async {
     try {
-      final response = await client.post(
-        Uri.parse('$_baseUrl/register'),
-        body: jsonEncode(<String, dynamic>{
+      final rawResponse = await client.post(
+        Uri.parse('$_baseUrl/login'),
+        body: <String, String>{
           'email': email,
           'password': password,
-        }),
+        },
       );
 
-      if (response.statusCode != 201) {
-        throw HttpResponseException(response.statusCode);
+      if (rawResponse.statusCode != 200) {
+        throw HttpResponseException(
+          rawResponse.statusCode,
+          message: CommonResponse.fromJson(rawResponse.body).message,
+        );
       }
 
-      return LoginResponse.fromJson(response.body);
+      return LoginResponse.fromJson(rawResponse.body);
+    } on HttpResponseException {
+      rethrow;
     } catch (e) {
-      throw HttpResponseException(500);
+      throw HttpResponseException(500, message: '$e');
     }
   }
 

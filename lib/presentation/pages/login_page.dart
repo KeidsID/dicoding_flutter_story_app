@@ -1,5 +1,9 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -48,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
               child: TextField(
                 decoration: const InputDecoration(
                   label: Text('Email'),
-                  hintText: 'fulanBinFulan@dicoding.com',
+                  hintText: 'fulanuddin@dicoding.com',
                 ),
                 controller: emailController,
               ),
@@ -75,14 +79,39 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 16.0),
-            FilledButton(onPressed: () {}, child: const Text('Log In')),
+            Consumer<AuthProvider>(
+              builder: (context, prov, _) {
+                if (prov.state == AuthProviderState.loading) {
+                  return const CircularProgressIndicator();
+                }
+
+                return FilledButton(
+                  onPressed: () async {
+                    final scaffoldMessenger = context.scaffoldMessenger;
+
+                    try {
+                      await prov.login(
+                        email: emailController.text,
+                        password: passwordController.text,
+                      );
+                    } on HttpResponseException catch (e) {
+                      prov.state = AuthProviderState.error;
+                      scaffoldMessenger.showSnackBar(SnackBar(
+                        content: Text('${e.statusCode}: ${e.message}'),
+                      ));
+                    }
+                  },
+                  child: const Text('Log In'),
+                );
+              },
+            ),
             const SizedBox(height: 16.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text('Need an account?'),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () => context.go('/register'),
                   child: const Text('Register'),
                 ),
               ],

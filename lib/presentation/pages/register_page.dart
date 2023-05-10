@@ -1,5 +1,9 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -62,7 +66,7 @@ class _RegisterPageState extends State<RegisterPage> {
               child: TextField(
                 decoration: const InputDecoration(
                   label: Text('Email'),
-                  hintText: 'fulanBinFulan@dicoding.com',
+                  hintText: 'fulanuddin@dicoding.com',
                 ),
                 controller: emailController,
               ),
@@ -89,14 +93,41 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const SizedBox(height: 16.0),
-            FilledButton(onPressed: () {}, child: const Text('Register')),
+            Consumer<AuthProvider>(
+              builder: (context, prov, _) {
+                if (prov.state == AuthProviderState.loading) {
+                  return const CircularProgressIndicator();
+                }
+
+                return FilledButton(
+                  onPressed: () async {
+                    final scaffoldMessenger = context.scaffoldMessenger;
+                    final go = context.go;
+
+                    try {
+                      await prov.register(
+                        name: nameController.text,
+                        email: emailController.text,
+                        password: passwordController.text,
+                      );
+                    } on HttpResponseException catch (e) {
+                      prov.state = AuthProviderState.error;
+                      scaffoldMessenger.showSnackBar(SnackBar(
+                        content: Text('${e.statusCode}: ${e.message}'),
+                      ));
+                    }
+                  },
+                  child: const Text('Register'),
+                );
+              },
+            ),
             const SizedBox(height: 16.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text('Already have an account?'),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () => context.go('/login'),
                   child: const Text('Login'),
                 ),
               ],

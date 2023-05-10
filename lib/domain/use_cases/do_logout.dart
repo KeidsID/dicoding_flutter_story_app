@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import '../repositories/story_repository.dart';
 
 class DoLogout {
@@ -7,6 +8,6 @@ class DoLogout {
 
   /// Remove log in token from the app cache.
   ///
-  /// Return false if fail.
-  Future<bool> execute() => repository.doLogout();
+  /// Will throw a [HttpResponseException] if an error occurs.
+  Future<void> execute() => repository.doLogout();
 }
