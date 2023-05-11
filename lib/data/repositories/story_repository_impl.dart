@@ -14,7 +14,18 @@ class StoryRepositoryImpl implements StoryRepository {
   });
 
   @override
-  String? getLoginToken() => loginTokenPreferences.getToken();
+  Future<String?> getLoginToken() async {
+    try {
+      final token = await loginTokenPreferences.getToken();
+
+      return token;
+    } catch (e) {
+      throw HttpResponseException(
+        500,
+        message: 'Failed to fetch token in the cache',
+      );
+    }
+  }
 
   @override
   Future<void> doLogin({

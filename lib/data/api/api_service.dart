@@ -55,8 +55,10 @@ class ApiService {
       }
 
       return response;
+    } on HttpResponseException {
+      rethrow;
     } catch (e) {
-      throw HttpResponseException(500);
+      throw HttpResponseException(500, message: '$e');
     }
   }
 
@@ -138,16 +140,22 @@ class ApiService {
 
     try {
       final StreamedResponse responseStream = await client.send(request);
-      final int statusCode = responseStream.statusCode;
-
-      if (statusCode != 201) throw HttpResponseException(statusCode);
-
       final List<int> responseBodyBytes = await responseStream.stream.toBytes();
-      final String responseBody = String.fromCharCodes(responseBodyBytes);
 
-      return CommonResponse.fromJson(responseBody);
+      final int statusCode = responseStream.statusCode;
+      final String rawResponseBody = String.fromCharCodes(responseBodyBytes);
+
+      final response = CommonResponse.fromJson(rawResponseBody);
+
+      if (statusCode != 201) {
+        throw HttpResponseException(statusCode, message: response.message);
+      }
+
+      return response;
+    } on HttpResponseException {
+      rethrow;
     } catch (e) {
-      throw HttpResponseException(500);
+      throw HttpResponseException(500, message: '$e');
     }
   }
 
@@ -187,15 +195,20 @@ class ApiService {
     );
 
     try {
-      final response = await client.get(url);
+      final rawResponse = await client.get(url);
 
-      if (response.statusCode != 200) {
-        throw HttpResponseException(response.statusCode);
+      if (rawResponse.statusCode != 200) {
+        throw HttpResponseException(
+          rawResponse.statusCode,
+          message: CommonResponse.fromJson(rawResponse.body).message,
+        );
       }
 
-      return FetchStoriesResponse.fromJson(response.body);
+      return FetchStoriesResponse.fromJson(rawResponse.body);
+    } on HttpResponseException {
+      rethrow;
     } catch (e) {
-      throw HttpResponseException(500);
+      throw HttpResponseException(500, message: '$e');
     }
   }
 
@@ -214,17 +227,22 @@ class ApiService {
     final url = Uri.parse('$_baseUrl/stories/$id');
 
     try {
-      final response = await client.get(url, headers: {
+      final rawResponse = await client.get(url, headers: {
         'Authorization': 'Bearer $token',
       });
 
-      if (response.statusCode != 200) {
-        throw HttpResponseException(response.statusCode);
+      if (rawResponse.statusCode != 200) {
+        throw HttpResponseException(
+          rawResponse.statusCode,
+          message: CommonResponse.fromJson(rawResponse.body).message,
+        );
       }
 
-      return FetchStoryDetailResponse.fromJson(response.body);
+      return FetchStoryDetailResponse.fromJson(rawResponse.body);
+    } on HttpResponseException {
+      rethrow;
     } catch (e) {
-      throw HttpResponseException(500);
+      throw HttpResponseException(500, message: '$e');
     }
   }
 }

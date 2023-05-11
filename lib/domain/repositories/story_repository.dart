@@ -8,6 +8,6 @@ abstract class StoryRepository {
     required String email,
     required String password,
   });
-  String? getLoginToken();
+  Future<String?> getLoginToken();
   Future<void> doLogout();
 }

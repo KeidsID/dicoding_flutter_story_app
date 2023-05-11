@@ -33,7 +33,7 @@ part 'story_repository_init.dart';
 final locator = GetIt.instance;
 
 Future<void> init() async {
-  locator.registerFactory(() {
+  locator.registerLazySingleton(() {
     return AuthProvider(
       doLogin: locator(),
       doLogout: locator(),

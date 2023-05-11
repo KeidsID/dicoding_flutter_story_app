@@ -34,8 +34,10 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _fetchToken() {
-    _loginToken = getLoginToken.execute();
+  Future<void> _fetchToken() async {
+    state = AuthProviderState.loading;
+
+    _loginToken = await getLoginToken.execute();
 
     state = (_loginToken == null)
         ? AuthProviderState.loggedOut
@@ -51,7 +53,7 @@ class AuthProvider extends ChangeNotifier {
 
     await doLogin.execute(email: email, password: password);
 
-    _fetchToken();
+    await _fetchToken();
   }
 
   /// Log out by deleting the login token in the cache, then update [state] and
@@ -63,7 +65,7 @@ class AuthProvider extends ChangeNotifier {
 
     await doLogout.execute();
 
-    _fetchToken();
+    await _fetchToken();
   }
 
   /// Register as new user to Dicoding Story API, then call [login] after the

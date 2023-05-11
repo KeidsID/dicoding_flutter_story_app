@@ -8,6 +8,8 @@ import 'router/router.dart';
 import 'service_locator/locator.dart' as service_locator;
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   core.init(
     appName: 'Dicoding Story',
     appPrimaryColor: const Color(0xff2d3e50),
@@ -22,12 +24,12 @@ void main() async {
         value: service_locator.locator(),
       ),
     ],
-    child: const MainApp(),
+    child: const App(),
   ));
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class App extends StatelessWidget {
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {

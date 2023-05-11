@@ -12,7 +12,11 @@ class LoginTokenPreferences {
     return sharedPreferences.setString(_prefKey, token);
   }
 
-  String? getToken() => sharedPreferences.getString(_prefKey);
+  Future<String?> getToken() async {
+    await sharedPreferences.reload();
+
+    return sharedPreferences.getString(_prefKey);
+  }
 
   Future<bool> removeToken() => sharedPreferences.remove(_prefKey);
 }

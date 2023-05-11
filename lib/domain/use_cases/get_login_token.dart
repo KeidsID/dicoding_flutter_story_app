@@ -6,5 +6,7 @@ class GetLoginToken {
   const GetLoginToken(this.repository);
 
   /// Fetch log in token from the app cache if available.
-  String? execute() => repository.getLoginToken();
+  ///
+  /// Will throw a [HttpResponseException] if an error occurs.
+  Future<String?> execute() => repository.getLoginToken();
 }
