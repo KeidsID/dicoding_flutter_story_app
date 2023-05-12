@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'presentation/providers/auth_provider.dart';
 import 'router/router.dart';
+import 'router/utils/url_strategy.dart';
 import 'service_locator/locator.dart' as service_locator;
 
 void main() async {
@@ -17,6 +18,8 @@ void main() async {
   );
 
   await service_locator.init();
+
+  usePathUrlStrategy();
 
   runApp(MultiProvider(
     providers: [

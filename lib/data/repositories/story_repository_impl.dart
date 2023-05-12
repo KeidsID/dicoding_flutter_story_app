@@ -1,5 +1,6 @@
 import 'package:core/core.dart';
 
+import '../../domain/entities/story.dart';
 import '../../domain/repositories/story_repository.dart';
 import '../api/api_service.dart';
 import '../cache/login_token_preferences.dart';
@@ -28,7 +29,7 @@ class StoryRepositoryImpl implements StoryRepository {
   }
 
   @override
-  Future<void> doLogin({
+  Future<String> doLogin({
     required String email,
     required String password,
   }) async {
@@ -46,6 +47,8 @@ class StoryRepositoryImpl implements StoryRepository {
         message: 'Token is not cached. Please re-log in',
       );
     }
+
+    return response.loginResult.name;
   }
 
   @override
@@ -67,5 +70,49 @@ class StoryRepositoryImpl implements StoryRepository {
     required String password,
   }) async {
     await apiService.register(name: name, email: email, password: password);
+  }
+
+  @override
+  Future<List<Story>> getStories({
+    required String token,
+    int? page,
+    int? size,
+    LocationQuery? location,
+  }) async {
+    final response = await apiService.fetchStories(
+      token: token,
+      page: page,
+      size: size,
+      location: location,
+    );
+
+    return response.listStory.map((e) => e.toEntity()).toList();
+  }
+
+  @override
+  Future<Story> getStoryDetail({
+    required String token,
+    required String id,
+  }) async {
+    final response = await apiService.fetchStoryDetail(token: token, id: id);
+
+    return response.story.toEntity();
+  }
+
+  @override
+  Future<void> postStory({
+    required String token,
+    required String description,
+    required List<int> photo,
+    double? lat,
+    double? lon,
+  }) async {
+    await apiService.postStory(
+      token: token,
+      description: description,
+      photo: photo,
+      lat: lat,
+      lon: lon,
+    );
   }
 }

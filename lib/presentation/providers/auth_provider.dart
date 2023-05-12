@@ -25,35 +25,42 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProviderState _state = AuthProviderState.loggedOut;
   String? _loginToken;
-
-  String? get loginToken => _loginToken;
+  String _username = '';
 
   AuthProviderState get state => _state;
-  set state(AuthProviderState value) {
+  String? get loginToken => _loginToken;
+  String get username => _username;
+
+  set _setState(AuthProviderState value) {
     _state = value;
     notifyListeners();
   }
 
   Future<void> _fetchToken() async {
-    state = AuthProviderState.loading;
+    _setState = AuthProviderState.loading;
 
     _loginToken = await getLoginToken.execute();
 
-    state = (_loginToken == null)
+    _setState = (_loginToken == null)
         ? AuthProviderState.loggedOut
         : AuthProviderState.loggedIn;
   }
 
-  /// Log in to Dicoding Story API, then update [state] and [loginToken] based
-  /// on the results.
+  /// Log in to Dicoding Story API, then update [state], [loginToken], and
+  /// [username] based on the results.
   ///
   /// Will throw a [HttpResponseException] if an error occurs.
   Future<void> login({required String email, required String password}) async {
-    state = AuthProviderState.loading;
+    _setState = AuthProviderState.loading;
 
-    await doLogin.execute(email: email, password: password);
+    try {
+      _username = await doLogin.execute(email: email, password: password);
 
-    await _fetchToken();
+      await _fetchToken();
+    } catch (e) {
+      _setState = AuthProviderState.error;
+      rethrow;
+    }
   }
 
   /// Log out by deleting the login token in the cache, then update [state] and
@@ -61,11 +68,16 @@ class AuthProvider extends ChangeNotifier {
   ///
   /// Will throw a [HttpResponseException] if an error occurs.
   Future<void> logout() async {
-    state = AuthProviderState.loading;
+    _setState = AuthProviderState.loading;
 
-    await doLogout.execute();
+    try {
+      await doLogout.execute();
 
-    await _fetchToken();
+      await _fetchToken();
+    } catch (e) {
+      _setState = AuthProviderState.error;
+      rethrow;
+    }
   }
 
   /// Register as new user to Dicoding Story API, then call [login] after the
@@ -77,10 +89,15 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    state = AuthProviderState.loading;
+    _setState = AuthProviderState.loading;
 
-    await doRegister.execute(name: name, email: email, password: password);
+    try {
+      await doRegister.execute(name: name, email: email, password: password);
 
-    await login(email: email, password: password);
+      await login(email: email, password: password);
+    } catch (e) {
+      _setState = AuthProviderState.error;
+      rethrow;
+    }
   }
 }

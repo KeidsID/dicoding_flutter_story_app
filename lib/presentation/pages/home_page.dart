@@ -9,40 +9,41 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unListenAuthProv = context.read<AuthProvider>();
+
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      appBar: AppBar(title: Text(appName)),
+      drawer: Drawer(
+        child: ListView(
           children: [
-            const Text('Home Page'),
+            // Drawer header
             const SizedBox(height: 16.0),
-            Consumer<AuthProvider>(
-              builder: (context, prov, child) {
-                if (prov.state == AuthProviderState.loading) {
-                  return const CircularProgressIndicator();
+            CircleAvatar(child: Text(unListenAuthProv.username[0])),
+            const SizedBox(height: 8.0),
+            Text('Welcome back ${unListenAuthProv.username}'),
+            const SizedBox(height: 16.0),
+            const Divider(),
+
+            // Actions
+            ListTile(
+              onTap: () async {
+                final showSnackBar = context.scaffoldMessenger.showSnackBar;
+
+                try {
+                  await unListenAuthProv.logout();
+                } on HttpResponseException catch (e) {
+                  showSnackBar(SnackBar(
+                    content: Text('${e.statusCode}: ${e.message}'),
+                  ));
                 }
-
-                return FilledButton(
-                  onPressed: () async {
-                    final showSnackBar = context.scaffoldMessenger.showSnackBar;
-
-                    try {
-                      await prov.logout();
-                    } on HttpResponseException catch (e) {
-                      showSnackBar(SnackBar(
-                        content: Text('${e.statusCode}: ${e.message}'),
-                      ));
-                    } catch (e) {
-                      showSnackBar(SnackBar(content: Text('$e')));
-                    }
-                  },
-                  child: const Text('Log Out'),
-                );
               },
+              leading: const Icon(Icons.logout),
+              title: const Text('Log out'),
             ),
           ],
         ),
       ),
+      body: const Placeholder(),
     );
   }
 }

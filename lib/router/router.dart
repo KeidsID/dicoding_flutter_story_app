@@ -23,7 +23,9 @@ final router = GoRouter(
       return (isLoginPath || isRegisterPath) ? null : '/login';
     }
 
-    if (authProvider.state == AuthProviderState.loggedIn) return '/';
+    if (authProvider.state == AuthProviderState.loggedIn) {
+      return (isLoginPath || isRegisterPath) ? '/' : null;
+    }
 
     return null;
   },

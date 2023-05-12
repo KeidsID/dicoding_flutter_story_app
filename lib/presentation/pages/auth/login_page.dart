@@ -1,21 +1,21 @@
 import 'package:core/core.dart';
+import 'package:dicoding_flutter_story_app/router/app_route_paths.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/auth_provider.dart';
-import '../widgets/email_text_field.dart';
-import '../widgets/password_text_field.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/email_text_field.dart';
+import '../../widgets/password_text_field.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
-  late TextEditingController nameController;
+class _LoginPageState extends State<LoginPage> {
   late TextEditingController emailController;
   late TextEditingController passwordController;
 
@@ -25,7 +25,6 @@ class _RegisterPageState extends State<RegisterPage> {
   void initState() {
     super.initState();
 
-    nameController = TextEditingController();
     emailController = TextEditingController();
     passwordController = TextEditingController();
   }
@@ -34,7 +33,6 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     super.dispose();
 
-    nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
   }
@@ -59,21 +57,8 @@ class _RegisterPageState extends State<RegisterPage> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Register Form', style: context.textTheme.headlineLarge),
+        Text(appName, style: context.textTheme.headlineLarge),
         const SizedBox(height: 16.0),
-
-        // Name field
-        SizedBox(
-          width: textFieldMinWidth,
-          child: TextField(
-            controller: nameController,
-            keyboardType: TextInputType.name,
-            decoration: const InputDecoration(
-              label: Text('Name'),
-              hintText: 'John Doe from Dicoding',
-            ),
-          ),
-        ),
 
         // Email field
         SizedBox(
@@ -95,6 +80,7 @@ class _RegisterPageState extends State<RegisterPage> {
         const SizedBox(height: 16.0),
 
         // Actions
+        const SizedBox(height: 16.0),
         Consumer<AuthProvider>(
           builder: (context, prov, _) {
             if (prov.state == AuthProviderState.loading) {
@@ -103,22 +89,20 @@ class _RegisterPageState extends State<RegisterPage> {
 
             return FilledButton(
               onPressed: () async {
-                final scaffoldMessenger = context.scaffoldMessenger;
+                final showSnackBar = context.scaffoldMessenger.showSnackBar;
 
                 try {
-                  await prov.register(
-                    name: nameController.text,
+                  await prov.login(
                     email: emailController.text,
                     password: passwordController.text,
                   );
                 } on HttpResponseException catch (e) {
-                  prov.state = AuthProviderState.error;
-                  scaffoldMessenger.showSnackBar(SnackBar(
+                  showSnackBar(SnackBar(
                     content: Text('${e.statusCode}: ${e.message}'),
                   ));
                 }
               },
-              child: const Text('Register'),
+              child: const Text('Log in'),
             );
           },
         ),
@@ -126,10 +110,10 @@ class _RegisterPageState extends State<RegisterPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Already have an account?'),
+            const Text('Need an account?'),
             TextButton(
-              onPressed: () => context.go('/login'),
-              child: const Text('Login'),
+              onPressed: () => context.go(AppRoutePaths.register),
+              child: const Text('Register'),
             ),
           ],
         )

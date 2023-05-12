@@ -5,13 +5,15 @@ class DoLogin {
 
   const DoLogin(this.repository);
 
-  /// Log in to Dicoding Story API. The log in token will be cached as well
+  /// Log in to Dicoding Story API. The log in token will be cached as well.
+  ///
+  /// Return username.
   ///
   /// Will throw a [HttpResponseException] if an error occurs.
-  Future<void> execute({
+  Future<String> execute({
     required String email,
     required String password,
-  }) async {
-    await repository.doLogin(email: email, password: password);
+  }) {
+    return repository.doLogin(email: email, password: password);
   }
 }

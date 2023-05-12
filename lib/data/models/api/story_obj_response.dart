@@ -1,3 +1,5 @@
+import 'package:dicoding_flutter_story_app/domain/entities/story.dart';
+
 /// The object model for the `Story` object in the API response
 class StoryObjResponse {
   final String id;
@@ -39,6 +41,18 @@ class StoryObjResponse {
       createdAt: map['createdAt'] as String,
       lat: map['lat'] as double,
       lon: map['lon'] as double,
+    );
+  }
+
+  Story toEntity() {
+    return Story(
+      id: id,
+      name: name,
+      description: description,
+      photoUrl: photoUrl,
+      createdAt: createdAt,
+      lat: lat,
+      lon: lon,
     );
   }
 }
