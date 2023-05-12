@@ -4,5 +4,5 @@ Future<void> _servicesInit() async {
   final sharedPreferences = await SharedPreferences.getInstance();
 
   locator.registerLazySingleton(() => ApiService(http.Client()));
-  locator.registerLazySingleton(() => LoginTokenPreferences(sharedPreferences));
+  locator.registerLazySingleton(() => LoginInfoPreferences(sharedPreferences));
 }

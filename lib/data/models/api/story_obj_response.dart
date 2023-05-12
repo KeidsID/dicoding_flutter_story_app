@@ -6,9 +6,9 @@ class StoryObjResponse {
   final String name;
   final String description;
   final String photoUrl;
-  final String createdAt;
-  final double lat;
-  final double lon;
+  final DateTime createdAt;
+  final double? lat;
+  final double? lon;
 
   const StoryObjResponse({
     required this.id,
@@ -20,13 +20,25 @@ class StoryObjResponse {
     required this.lon,
   });
 
+  Story toEntity() {
+    return Story(
+      id: id,
+      name: name,
+      description: description,
+      photoUrl: photoUrl,
+      createdAt: createdAt,
+      lat: lat,
+      lon: lon,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
       'name': name,
       'description': description,
       'photoUrl': photoUrl,
-      'createdAt': createdAt,
+      'createdAt': createdAt.toIso8601String(),
       'lat': lat,
       'lon': lon,
     };
@@ -38,21 +50,9 @@ class StoryObjResponse {
       name: map['name'] as String,
       description: map['description'] as String,
       photoUrl: map['photoUrl'] as String,
-      createdAt: map['createdAt'] as String,
-      lat: map['lat'] as double,
-      lon: map['lon'] as double,
-    );
-  }
-
-  Story toEntity() {
-    return Story(
-      id: id,
-      name: name,
-      description: description,
-      photoUrl: photoUrl,
-      createdAt: createdAt,
-      lat: lat,
-      lon: lon,
+      createdAt: DateTime.parse(map['createdAt'] as String),
+      lat: double.tryParse('${map['lat']}'),
+      lon: double.tryParse('${map['lon']}'),
     );
   }
 }

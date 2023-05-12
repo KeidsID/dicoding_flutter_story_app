@@ -1,13 +1,15 @@
 import 'package:core/core.dart';
+import 'package:dicoding_flutter_story_app/data/models/cache/login_info_model.dart';
 
+import '../../domain/entities/login_info.dart';
 import '../../domain/entities/story.dart';
 import '../../domain/repositories/story_repository.dart';
 import '../api/api_service.dart';
-import '../cache/login_token_preferences.dart';
+import '../cache/login_info_preferences.dart';
 
 class StoryRepositoryImpl implements StoryRepository {
   final ApiService apiService;
-  final LoginTokenPreferences loginTokenPreferences;
+  final LoginInfoPreferences loginTokenPreferences;
 
   const StoryRepositoryImpl({
     required this.apiService,
@@ -15,21 +17,21 @@ class StoryRepositoryImpl implements StoryRepository {
   });
 
   @override
-  Future<String?> getLoginToken() async {
+  Future<LoginInfo?> getLoginInfo() async {
     try {
-      final token = await loginTokenPreferences.getToken();
+      final loginInfoModel = await loginTokenPreferences.getLoginInfo();
 
-      return token;
+      return (loginInfoModel != null) ? loginInfoModel.toEntity() : null;
     } catch (e) {
       throw HttpResponseException(
         500,
-        message: 'Failed to fetch token in the cache',
+        message: 'Failed to fetch login info in the cache',
       );
     }
   }
 
   @override
-  Future<String> doLogin({
+  Future<void> doLogin({
     required String email,
     required String password,
   }) async {
@@ -39,26 +41,28 @@ class StoryRepositoryImpl implements StoryRepository {
     );
 
     final token = response.loginResult.token;
-    final isCached = await loginTokenPreferences.saveToken(token);
+    final username = response.loginResult.name;
+    final isCached = await loginTokenPreferences.saveLoginInfo(LoginInfoModel(
+      name: username,
+      token: token,
+    ));
 
     if (!isCached) {
       throw HttpResponseException(
         500,
-        message: 'Token is not cached. Please re-log in',
+        message: 'Login info is not cached. Please re-login',
       );
     }
-
-    return response.loginResult.name;
   }
 
   @override
   Future<void> doLogout() async {
-    final isSuccess = await loginTokenPreferences.removeToken();
+    final isSuccess = await loginTokenPreferences.removeLoginInfo();
 
     if (!isSuccess) {
       throw throw HttpResponseException(
         500,
-        message: 'Token is not removed. Please re-log out',
+        message: 'Login info is not removed. Please re-logout',
       );
     }
   }

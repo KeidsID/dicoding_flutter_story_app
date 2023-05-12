@@ -1,12 +1,4 @@
 class Story {
-  final String id;
-  final String name;
-  final String description;
-  final String photoUrl;
-  final String createdAt;
-  final double lat;
-  final double lon;
-
   const Story({
     required this.id,
     required this.name,
@@ -16,4 +8,25 @@ class Story {
     required this.lat,
     required this.lon,
   });
+
+  /// Story unique identifier.
+  final String id;
+
+  /// The name of the person who posted the story.
+  final String name;
+
+  /// The description of the story
+  final String description;
+
+  /// The URL of the photo attached by the story owner.
+  final String photoUrl;
+
+  /// Date and time this story was posted.
+  final DateTime createdAt;
+
+  /// [lat] (Latitude) is a unit used for geographic coordinate.
+  final double? lat;
+
+  /// [lon] (Longitude) is a unit used for geographic coordinate.
+  final double? lon;
 }

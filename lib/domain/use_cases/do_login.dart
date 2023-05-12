@@ -10,7 +10,7 @@ class DoLogin {
   /// Return username.
   ///
   /// Will throw a [HttpResponseException] if an error occurs.
-  Future<String> execute({
+  Future<void> execute({
     required String email,
     required String password,
   }) {

@@ -1,4 +1,5 @@
 import 'package:core/core.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
 import '../models/api/common_response.dart';
@@ -181,21 +182,27 @@ class ApiService {
     int? size,
     LocationQuery? location,
   }) async {
+    final pageQuery = (page != null) ? {'page': '$page'} : {};
+    final sizeQuery = (size != null) ? {'size': '$size'} : {};
+    final locationQuery = (location != null)
+        ? {'location': (location == LocationQuery.zero) ? '0' : '1'}
+        : {};
+
     final Map<String, dynamic> queryParams = {
-      'page': page,
-      'size': size,
-      'location': (location == null)
-          ? location
-          : (location == LocationQuery.one)
-              ? '1'
-              : '0',
+      ...pageQuery,
+      ...sizeQuery,
+      ...locationQuery,
     };
+
     final url = Uri.parse('$_baseUrl/stories').replace(
-      queryParameters: queryParams,
+      queryParameters: (queryParams.isEmpty) ? null : queryParams,
     );
+    debugPrint('$url');
+
+    final headers = {'Authorization': 'Bearer $token'};
 
     try {
-      final rawResponse = await client.get(url);
+      final rawResponse = await client.get(url, headers: headers);
 
       if (rawResponse.statusCode != 200) {
         throw HttpResponseException(
@@ -225,11 +232,10 @@ class ApiService {
     required String id,
   }) async {
     final url = Uri.parse('$_baseUrl/stories/$id');
+    final headers = {'Authorization': 'Bearer $token'};
 
     try {
-      final rawResponse = await client.get(url, headers: {
-        'Authorization': 'Bearer $token',
-      });
+      final rawResponse = await client.get(url, headers: headers);
 
       if (rawResponse.statusCode != 200) {
         throw HttpResponseException(

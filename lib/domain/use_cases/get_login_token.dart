@@ -1,3 +1,5 @@
+import 'package:dicoding_flutter_story_app/domain/entities/login_info.dart';
+
 import '../repositories/story_repository.dart';
 
 class GetLoginToken {
@@ -8,5 +10,5 @@ class GetLoginToken {
   /// Fetch log in token from the app cache if available.
   ///
   /// Will throw a [HttpResponseException] if an error occurs.
-  Future<String?> execute() => repository.getLoginToken();
+  Future<LoginInfo?> execute() => repository.getLoginInfo();
 }

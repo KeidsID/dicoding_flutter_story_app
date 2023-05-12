@@ -97,10 +97,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
         // Actions
         Consumer<AuthProvider>(
-          builder: (context, prov, _) {
-            if (prov.state == AuthProviderState.loading) {
-              return const CircularProgressIndicator();
-            }
+          builder: (context, prov, child) {
+            if (prov.state == AuthProviderState.loading) return child!;
 
             return FilledButton(
               onPressed: () async {
@@ -114,13 +112,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   );
                 } on HttpResponseException catch (e) {
                   showSnackBar(SnackBar(
-                    content: Text('${e.statusCode}: ${e.message}'),
+                    content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
                   ));
                 }
               },
               child: const Text('Register'),
             );
           },
+          child: const CircularProgressIndicator(),
         ),
         const SizedBox(height: 8.0),
         Row(

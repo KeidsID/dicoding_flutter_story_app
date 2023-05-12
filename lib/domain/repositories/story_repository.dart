@@ -1,8 +1,9 @@
 import '../../data/api/api_service.dart';
+import '../entities/login_info.dart';
 import '../entities/story.dart';
 
 abstract class StoryRepository {
-  Future<String> doLogin({
+  Future<void> doLogin({
     required String email,
     required String password,
   });
@@ -15,7 +16,7 @@ abstract class StoryRepository {
     required String password,
   });
 
-  Future<String?> getLoginToken();
+  Future<LoginInfo?> getLoginInfo();
 
   Future<List<Story>> getStories({
     required String token,

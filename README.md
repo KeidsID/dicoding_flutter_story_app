@@ -16,7 +16,7 @@ API for this project: https://story-api.dicoding.dev/v1/
 - [x] Authentication Pages.
 - [ ] Story Pages.
 - [ ] Add Story Page.
-- [ ] Advanced Navigation.
+- [x] Advanced Navigation.
 
 ### Optional Tasks
 

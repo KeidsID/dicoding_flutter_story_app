@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../../domain/entities/login_info.dart';
 import '../../domain/use_cases/do_login.dart';
 import '../../domain/use_cases/do_logout.dart';
 import '../../domain/use_cases/do_register.dart';
@@ -24,12 +25,10 @@ class AuthProvider extends ChangeNotifier {
   }
 
   AuthProviderState _state = AuthProviderState.loggedOut;
-  String? _loginToken;
-  String _username = '';
+  LoginInfo? _loginInfo;
 
   AuthProviderState get state => _state;
-  String? get loginToken => _loginToken;
-  String get username => _username;
+  LoginInfo? get loginInfo => _loginInfo;
 
   set _setState(AuthProviderState value) {
     _state = value;
@@ -39,14 +38,14 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _fetchToken() async {
     _setState = AuthProviderState.loading;
 
-    _loginToken = await getLoginToken.execute();
+    _loginInfo = await getLoginToken.execute();
 
-    _setState = (_loginToken == null)
+    _setState = (_loginInfo == null)
         ? AuthProviderState.loggedOut
         : AuthProviderState.loggedIn;
   }
 
-  /// Log in to Dicoding Story API, then update [state], [loginToken], and
+  /// Log in to Dicoding Story API, then update [state], [loginInfo], and
   /// [username] based on the results.
   ///
   /// Will throw a [HttpResponseException] if an error occurs.
@@ -54,7 +53,7 @@ class AuthProvider extends ChangeNotifier {
     _setState = AuthProviderState.loading;
 
     try {
-      _username = await doLogin.execute(email: email, password: password);
+      await doLogin.execute(email: email, password: password);
 
       await _fetchToken();
     } catch (e) {
@@ -64,7 +63,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Log out by deleting the login token in the cache, then update [state] and
-  /// [loginToken] based on the results.
+  /// [loginInfo] based on the results.
   ///
   /// Will throw a [HttpResponseException] if an error occurs.
   Future<void> logout() async {

@@ -1,9 +1,13 @@
+import 'package:dicoding_flutter_story_app/domain/use_cases/get_stories.dart';
+import 'package:dicoding_flutter_story_app/domain/use_cases/get_story_detail.dart';
+import 'package:dicoding_flutter_story_app/domain/use_cases/post_story.dart';
+import 'package:dicoding_flutter_story_app/presentation/providers/story_provider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/api/api_service.dart';
-import '../data/cache/login_token_preferences.dart';
+import '../data/cache/login_info_preferences.dart';
 import '../data/repositories/story_repository_impl.dart';
 import '../domain/repositories/story_repository.dart';
 import '../domain/use_cases/do_login.dart';
@@ -39,6 +43,14 @@ Future<void> init() async {
       doLogout: locator(),
       doRegister: locator(),
       getLoginToken: locator(),
+    );
+  });
+
+  locator.registerFactory(() {
+    return StoryProvider(
+      getStories: locator(),
+      getStoryDetail: locator(),
+      postStory: locator(),
     );
   });
 

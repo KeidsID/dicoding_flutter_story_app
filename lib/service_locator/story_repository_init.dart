@@ -12,4 +12,7 @@ void _storyRepositoryInit() {
   locator.registerLazySingleton(() => DoLogout(locator()));
   locator.registerLazySingleton(() => DoRegister(locator()));
   locator.registerLazySingleton(() => GetLoginToken(locator()));
+  locator.registerLazySingleton(() => GetStories(locator()));
+  locator.registerLazySingleton(() => GetStoryDetail(locator()));
+  locator.registerLazySingleton(() => PostStory(locator()));
 }
