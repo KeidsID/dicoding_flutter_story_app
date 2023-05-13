@@ -11,6 +11,7 @@ class PasswordTextField extends StatelessWidget {
     this.controller,
     this.isVisible = true,
     this.onIconPressed,
+    this.onSubmitted,
   });
 
   /// Controls the text being edited.
@@ -29,11 +30,16 @@ class PasswordTextField extends StatelessWidget {
   /// If this is set to null, the button will be disabled.
   final VoidCallback? onIconPressed;
 
+  /// Called when the user indicates that they are done editing the text in the
+  /// field.
+  final ValueChanged<String>? onSubmitted;
+
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
       obscureText: !isVisible,
+      onSubmitted: onSubmitted,
       decoration: InputDecoration(
         label: const Text('Password'),
         suffixIcon: IconButton(

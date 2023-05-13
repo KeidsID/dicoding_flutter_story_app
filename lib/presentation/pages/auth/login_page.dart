@@ -75,6 +75,19 @@ class _LoginPageState extends State<LoginPage> {
             onIconPressed: () => setState(() {
               isPasswordVisible = !isPasswordVisible;
             }),
+            onSubmitted: (value) async {
+              final showSnackBar = context.scaffoldMessenger.showSnackBar;
+
+              try {
+                await context
+                    .read<AuthProvider>()
+                    .login(email: emailController.text, password: value);
+              } on HttpResponseException catch (e) {
+                showSnackBar(SnackBar(
+                  content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
+                ));
+              }
+            },
           ),
         ),
         const SizedBox(height: 16.0),

@@ -69,6 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
           child: TextField(
             controller: nameController,
             keyboardType: TextInputType.name,
+            textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
               label: Text('Name'),
               hintText: 'John Doe from Dicoding',
@@ -91,6 +92,23 @@ class _RegisterPageState extends State<RegisterPage> {
             onIconPressed: () => setState(() {
               isPasswordVisible = !isPasswordVisible;
             }),
+            onSubmitted: (value) async {
+              final showSnackBar = context.scaffoldMessenger.showSnackBar;
+
+              final authProv = context.read<AuthProvider>();
+
+              try {
+                await authProv.register(
+                  name: nameController.text,
+                  email: emailController.text,
+                  password: value,
+                );
+              } on HttpResponseException catch (e) {
+                showSnackBar(SnackBar(
+                  content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
+                ));
+              }
+            },
           ),
         ),
         const SizedBox(height: 16.0),

@@ -14,6 +14,7 @@ class EmailTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       keyboardType: TextInputType.emailAddress,
+      textInputAction: TextInputAction.next,
       decoration: const InputDecoration(
         label: Text('Email'),
         hintText: 'johndoe@dicoding.com',
