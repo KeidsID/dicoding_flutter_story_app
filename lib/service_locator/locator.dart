@@ -1,7 +1,3 @@
-import 'package:dicoding_flutter_story_app/domain/use_cases/get_stories.dart';
-import 'package:dicoding_flutter_story_app/domain/use_cases/get_story_detail.dart';
-import 'package:dicoding_flutter_story_app/domain/use_cases/post_story.dart';
-import 'package:dicoding_flutter_story_app/presentation/providers/story_provider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +10,11 @@ import '../domain/use_cases/do_login.dart';
 import '../domain/use_cases/do_logout.dart';
 import '../domain/use_cases/do_register.dart';
 import '../domain/use_cases/get_login_token.dart';
+import '../domain/use_cases/get_stories.dart';
+import '../domain/use_cases/get_story_detail.dart';
+import '../domain/use_cases/post_story.dart';
 import '../presentation/providers/auth_provider.dart';
+import '../presentation/providers/story_provider.dart';
 
 part 'services_init.dart';
 part 'story_repository_init.dart';

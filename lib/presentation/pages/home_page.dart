@@ -1,31 +1,43 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/entities/login_info.dart';
+import '../../router/app_route_paths.dart';
 import '../providers/auth_provider.dart';
 import '../providers/story_provider.dart';
 import '../widgets/stories_list_item.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.page, this.size});
+
+  /// The current page of stories.
+  final int? page;
+
+  /// Number of stories to load on each page.
+  final int? size;
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  late final AuthProvider unListenAuthProv;
+
   @override
   void initState() {
     super.initState();
 
+    unListenAuthProv = context.read();
+
     Future.microtask(() async {
-      final loginInfo = context.read<AuthProvider>().loginInfo!;
+      final token = unListenAuthProv.loginInfo!.token;
 
       try {
         await context
             .read<StoryProvider>()
-            .fetchStories(token: loginInfo.token);
+            .fetchStories(token: token, page: widget.page, size: widget.size);
       } on HttpResponseException catch (e) {
         debugPrint('$e ${e.message}');
       }
@@ -34,8 +46,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final unListenAuthProv = context.read<AuthProvider>();
-
     // Won't null because the auth state is loggedIn
     final loginInfo = unListenAuthProv.loginInfo!;
 
@@ -52,6 +62,8 @@ class _HomePageState extends State<HomePage> {
           drawer: _PageDrawer(unListenAuthProv),
           body: _PageBody(
             loginInfo,
+            page: widget.page,
+            size: widget.size,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: isOneColumnGrid
                   ? 1
@@ -128,12 +140,16 @@ class _PageDrawer extends StatelessWidget {
 class _PageBody extends StatelessWidget {
   const _PageBody(
     this.loginInfo, {
+    this.page,
+    this.size,
     required this.gridDelegate,
     this.padding,
     this.maxWidth,
   });
 
   final LoginInfo loginInfo;
+  final int? page;
+  final int? size;
 
   /// A delegate that controls the layout of the children within the [GridView].
   final SliverGridDelegate gridDelegate;
@@ -162,20 +178,7 @@ class _PageBody extends StatelessWidget {
                 Text((isFail) ? 'Fail to fetch stories' : 'No Data'),
                 const SizedBox(height: 16.0),
                 ElevatedButton(
-                  onPressed: () async {
-                    final showSnackBar = context.scaffoldMessenger.showSnackBar;
-
-                    try {
-                      await storyProv.fetchStories(token: loginInfo.token);
-                    } on HttpResponseException catch (e) {
-                      debugPrint('$e ${e.message}');
-                      showSnackBar(SnackBar(
-                        content: Text(
-                          e.message ?? '${e.statusCode}: ${e.name}',
-                        ),
-                      ));
-                    }
-                  },
+                  onPressed: refreshCallback(context, storyProvider: storyProv),
                   child: const Text('Refresh'),
                 ),
               ],
@@ -194,7 +197,9 @@ class _PageBody extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final story = stories[index];
 
-                  return StoriesListItem(story, onTap: () {});
+                  return StoriesListItem(story, onTap: () {
+                    context.go(AppRoutePaths.storyDetail(story.id));
+                  });
                 },
               ),
             ),
@@ -203,5 +208,29 @@ class _PageBody extends StatelessWidget {
       },
       child: const Center(child: CircularProgressIndicator()),
     );
+  }
+
+  VoidCallback refreshCallback(
+    BuildContext context, {
+    required StoryProvider storyProvider,
+  }) {
+    return () async {
+      final showSnackBar = context.scaffoldMessenger.showSnackBar;
+
+      try {
+        await storyProvider.fetchStories(
+          token: loginInfo.token,
+          page: page,
+          size: size,
+        );
+      } on HttpResponseException catch (e) {
+        debugPrint('$e ${e.message}');
+        showSnackBar(SnackBar(
+          content: Text(
+            e.message ?? '${e.statusCode}: ${e.name}',
+          ),
+        ));
+      }
+    };
   }
 }
