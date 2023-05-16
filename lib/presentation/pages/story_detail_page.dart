@@ -1,18 +1,22 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:core/core.dart';
-import 'package:dicoding_flutter_story_app/router/app_route_paths.dart';
-import 'package:dicoding_flutter_story_app/utils/custom_text_overflow.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/entities/story.dart';
+import '../../router/app_route_paths.dart';
+import '../../utils/custom_text_overflow.dart';
 import '../providers/auth_provider.dart';
+import '../providers/stories_route_queries_provider.dart';
 import '../providers/story_provider.dart';
 import '../widgets/text_button_to_home.dart';
 
 class StoryDetailPage extends StatefulWidget {
-  const StoryDetailPage(this.storyId, {super.key});
+  const StoryDetailPage(
+    this.storyId, {
+    super.key,
+  });
 
   final String storyId;
 
@@ -84,7 +88,24 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
             );
           }
 
-          return _PageForSmallDevice(story);
+          return LayoutBuilder(builder: (context, constraint) {
+            final storiesRouteQueriesProv =
+                context.read<StoriesRouteQueriesProvider>();
+
+            final isSmallDevice = constraint.maxWidth <= 600;
+
+            if (isSmallDevice) {
+              return _PageForSmallDevice(
+                story,
+                storiesRouteQueriesProvider: storiesRouteQueriesProv,
+              );
+            }
+
+            return _PageForWideDevice(
+              story,
+              storiesRouteQueriesProvider: storiesRouteQueriesProv,
+            );
+          });
         },
         child: const Center(child: CircularProgressIndicator()),
       ),
@@ -92,10 +113,22 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
   }
 }
 
+VoidCallback backButtonCallback(
+  BuildContext context, {
+  required int page,
+  required int size,
+}) {
+  return () => context.go(AppRoutePaths.stories(page: page, size: size));
+}
+
 class _PageForSmallDevice extends StatelessWidget {
-  const _PageForSmallDevice(this.story);
+  const _PageForSmallDevice(
+    this.story, {
+    required this.storiesRouteQueriesProvider,
+  });
 
   final Story story;
+  final StoriesRouteQueriesProvider storiesRouteQueriesProvider;
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +139,7 @@ class _PageForSmallDevice extends StatelessWidget {
 
     return Stack(
       children: [
+        // Background (image)
         CachedNetworkImage(
           imageUrl: story.photoUrl,
           placeholder: (_, __) => const Center(
@@ -115,6 +149,7 @@ class _PageForSmallDevice extends StatelessWidget {
           height: deviceHeight - (deviceHeight / 3),
           fit: BoxFit.cover,
         ),
+        // Main content draggable container.
         Padding(
           padding: const EdgeInsets.only(top: 72.0),
           child: DraggableScrollableSheet(
@@ -136,7 +171,9 @@ class _PageForSmallDevice extends StatelessWidget {
                       child: Container(
                         decoration: BoxDecoration(
                           color: colorScheme.onBackground,
-                          borderRadius: BorderRadius.all(Radius.circular(16.0)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(16.0),
+                          ),
                         ),
                         height: 4.0,
                         width: 80.0,
@@ -148,6 +185,7 @@ class _PageForSmallDevice extends StatelessWidget {
             },
           ),
         ),
+        // AppBar actions
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: CircleAvatar(
@@ -156,7 +194,11 @@ class _PageForSmallDevice extends StatelessWidget {
             child: IconButton(
               icon: const Icon(Icons.arrow_back),
               color: colorScheme.onBackground,
-              onPressed: () => context.go(AppRoutePaths.stories()),
+              onPressed: backButtonCallback(
+                context,
+                page: storiesRouteQueriesProvider.page,
+                size: storiesRouteQueriesProvider.size,
+              ),
             ),
           ),
         ),
@@ -214,6 +256,119 @@ class _PageForSmallDevice extends StatelessWidget {
             Text(
               story.description,
               style: textTheme.titleLarge,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PageForWideDevice extends StatelessWidget {
+  const _PageForWideDevice(
+    this.story, {
+    required this.storiesRouteQueriesProvider,
+  });
+
+  final Story story;
+  final StoriesRouteQueriesProvider storiesRouteQueriesProvider;
+
+  @override
+  Widget build(BuildContext context) {
+    final isWiderDevice = context.screenSize.width >= 900.0;
+
+    const pageMinSize = Size(900.0, 600.0);
+
+    final textTheme = context.textTheme;
+
+    final name = story.name;
+
+    final bodyMedium = textTheme.bodyMedium;
+    final dateTimeTextTheme = bodyMedium?.copyWith(
+      color: bodyMedium.color?.withOpacity(0.5),
+    );
+
+    return Center(
+      child: Container(
+        width: pageMinSize.width,
+        height: pageMinSize.height,
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: CachedNetworkImage(
+                imageUrl: story.photoUrl,
+                fit: BoxFit.cover,
+                height: pageMinSize.height,
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Container(
+                padding: const EdgeInsets.only(left: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 24.0,
+                          child: Text(
+                            name[0].toUpperCase(),
+                            style: textTheme.headlineSmall,
+                          ),
+                        ),
+                        const SizedBox(width: 16.0),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              customTextOverflow(
+                                name,
+                                maxLength: isWiderDevice ? 40 : 20,
+                              ),
+                              style: textTheme.titleLarge,
+                            ),
+                            Text(
+                              // TODO: Localizations it with 'yMMMMd' format
+                              customTextOverflow(
+                                '${story.createdAt}',
+                                maxLength: isWiderDevice ? 40 : 20,
+                              ),
+                              style: dateTimeTextTheme,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16.0),
+                    Expanded(
+                      flex: 4,
+                      child: Text(
+                        story.description,
+                        style: textTheme.bodyLarge,
+                        // maxLines: context.screenSize.height <= 600 ? 5 : 20,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: ElevatedButton(
+                          onPressed: backButtonCallback(
+                            context,
+                            page: storiesRouteQueriesProvider.page,
+                            size: storiesRouteQueriesProvider.size,
+                          ),
+                          child: const Text('Go Back'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../dependencies/locator.dart' as dependencies;
 import '../presentation/providers/auth_provider.dart';
 import '../presentation/widgets/text_button_to_home.dart';
-import '../service_locator/locator.dart';
 import 'app_route_paths.dart';
 import 'routes/auth_routes.dart';
 import 'routes/stories_route/stories_route.dart';
@@ -18,7 +18,7 @@ final router = GoRouter(
     debugPrint('${state.error}');
     return const HttpErrorPage(statusCode: 404, child: TextButtonToHome());
   },
-  refreshListenable: locator<AuthProvider>(),
+  refreshListenable: dependencies.locator<AuthProvider>(),
   redirect: (context, state) {
     final authProvider = context.read<AuthProvider>();
 

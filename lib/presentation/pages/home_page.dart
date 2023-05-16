@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../domain/entities/login_info.dart';
 import '../../router/app_route_paths.dart';
 import '../providers/auth_provider.dart';
+import '../providers/stories_route_queries_provider.dart';
 import '../providers/story_provider.dart';
 import '../widgets/stories_list_item.dart';
 
@@ -34,10 +35,15 @@ class _HomePageState extends State<HomePage> {
     Future.microtask(() async {
       final token = unListenAuthProv.loginInfo!.token;
 
+      final queriesProvider = context.read<StoriesRouteQueriesProvider>();
+
       try {
         await context
             .read<StoryProvider>()
             .fetchStories(token: token, page: widget.page, size: widget.size);
+
+        queriesProvider.page = widget.page ?? 1;
+        queriesProvider.size = widget.size ?? 10;
       } on HttpResponseException catch (e) {
         debugPrint('$e ${e.message}');
       }
