@@ -3,19 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../presentation/pages/home_page.dart';
 import '../presentation/providers/auth_provider.dart';
+import '../presentation/widgets/text_button_to_home.dart';
 import '../service_locator/locator.dart';
 import 'app_route_paths.dart';
 import 'routes/auth_routes.dart';
-import 'routes/story_routes.dart';
+import 'routes/stories_route/stories_route.dart';
 
 /// Router for the application.
 final router = GoRouter(
-  initialLocation: AppRoutePaths.stories(),
+  // To prevent null login info on homepage.
+  initialLocation: AppRoutePaths.login,
   errorBuilder: (_, state) {
     debugPrint('${state.error}');
-    return HttpErrorPages.client.notFound();
+    return const HttpErrorPage(statusCode: 404, child: TextButtonToHome());
   },
   refreshListenable: locator<AuthProvider>(),
   redirect: (context, state) {
@@ -37,20 +38,7 @@ final router = GoRouter(
     return null;
   },
   routes: [
-    GoRoute(
-      path: '/stories',
-      builder: (_, state) {
-        final queries = state.queryParameters;
-
-        final page = int.tryParse(queries['page'] ?? 'null');
-        final size = int.tryParse(queries['size'] ?? 'null');
-        // TODO: Support it on upcoming version
-        // final location = queries['location'];
-
-        return HomePage(page: page, size: size);
-      },
-      routes: [...storyRoutes],
-    ),
+    storiesRoute,
     ...authRoutes,
   ],
 );

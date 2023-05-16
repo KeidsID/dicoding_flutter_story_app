@@ -12,15 +12,25 @@ abstract class AppRoutePaths {
   /// return "/stories{with queries if specified}".
   ///
   /// Example: "/stories?page=1&size=10"
+  ///
+  /// Throw an [RangeError] if [page] or [size] are below `1`.
   static String stories({
-    int? page,
-    int? size,
-    LocationQuery? location,
+    int page = 1,
+    int size = 10,
+    // LocationQuery location = LocationQuery.zero,
   }) {
+    if (page < 1) {
+      throw RangeError('The "page" parameter cannot be less than 1');
+    }
+
+    if (size < 1) {
+      throw RangeError('The "size" parameter cannot be less than 1');
+    }
+
     final url = ApiService.fetchStoriesUrlConfigs(
       page: page,
       size: size,
-      location: location,
+      // location: location,
     );
 
     final filteredPath = url.path.replaceAll('/v1', '');

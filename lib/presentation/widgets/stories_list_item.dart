@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:core/core.dart';
+import 'package:dicoding_flutter_story_app/utils/custom_text_overflow.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/story.dart';
@@ -23,8 +25,6 @@ class StoriesListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
     final createdAt = story.createdAt;
-    final name = story.name;
-    const nameMaxLength = 10;
 
     final titleMedium = textTheme.titleMedium;
     final dateTimeTextTheme = titleMedium?.copyWith(
@@ -47,8 +47,11 @@ class StoriesListItem extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 3,
-                    child: Image.network(
-                      story.photoUrl,
+                    child: CachedNetworkImage(
+                      imageUrl: story.photoUrl,
+                      placeholder: (_, __) => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
                       width: maxWidth,
                       fit: BoxFit.cover,
                     ),
@@ -67,9 +70,10 @@ class StoriesListItem extends StatelessWidget {
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: (name.length > nameMaxLength)
-                                      ? '${name.substring(0, nameMaxLength)}...'
-                                      : name,
+                                  text: customTextOverflow(
+                                    story.name,
+                                    maxLength: 12,
+                                  ),
                                   style: textTheme.titleLarge,
                                 ),
                                 const WidgetSpan(
