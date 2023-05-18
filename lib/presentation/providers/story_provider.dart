@@ -89,20 +89,27 @@ class StoryProvider extends ChangeNotifier {
   Future<void> addStory({
     required String token,
     required String description,
-    required List<int> photo,
+    required List<int> imageFileBytes,
+    required String imageFilename,
     double? lat,
     double? lon,
   }) async {
     _setState = StoryProviderState.loading;
 
-    await postStory.execute(
-      token: token,
-      description: description,
-      photo: photo,
-      lat: lat,
-      lon: lon,
-    );
+    try {
+      await postStory.execute(
+        token: token,
+        description: description,
+        imageFileBytes: imageFileBytes,
+        imageFilename: imageFilename,
+        lat: lat,
+        lon: lon,
+      );
 
-    await fetchStories(token: token);
+      await fetchStories(token: token);
+    } catch (e) {
+      _setState = StoryProviderState.fail;
+      rethrow;
+    }
   }
 }

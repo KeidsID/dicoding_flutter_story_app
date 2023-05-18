@@ -1,7 +1,7 @@
 part of '../stories_route.dart';
 
 final _storyDetailRoute = GoRoute(
-  path: ':id',
+  path: 'view/:id',
   builder: (context, state) {
     final storyId = state.pathParameters['id'];
 

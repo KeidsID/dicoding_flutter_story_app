@@ -18,13 +18,24 @@ dependencies:
     git:
       url: https://github.com/KeidsID/flutter_app_core_package.git
 
-  go_router: ^7.0.0
+  # Dart utils
+  get_it: ^7.6.0
   http: ^0.13.6
+
+  # Flutter utils
+  go_router: ^7.0.0
   provider: ^6.0.5
   shared_preferences: ^2.1.0
-  get_it: ^7.6.0
   cached_network_image: ^3.2.3
+
+  # Media
+  image_picker: ^0.8.7+5
+  image_picker_windows: ^0.1.0+6
+
+  # App utils generator
   icons_launcher: ^2.1.0
+  camera: ^0.10.5
+  camera_windows: ^0.2.1+6
 
 dev_dependencies:
   flutter_test:

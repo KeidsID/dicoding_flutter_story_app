@@ -14,6 +14,7 @@ import '../domain/use_cases/get_stories.dart';
 import '../domain/use_cases/get_story_detail.dart';
 import '../domain/use_cases/post_story.dart';
 import '../presentation/providers/auth_provider.dart';
+import '../presentation/providers/image_picker_provider.dart';
 import '../presentation/providers/stories_route_queries_provider.dart';
 import '../presentation/providers/story_provider.dart';
 
@@ -56,6 +57,7 @@ Future<void> init() async {
   });
 
   locator.registerFactory(() => StoriesRouteQueriesProvider());
+  locator.registerFactory(() => ImagePickerProvider());
 
   _storyRepositoryInit();
   await _servicesInit();

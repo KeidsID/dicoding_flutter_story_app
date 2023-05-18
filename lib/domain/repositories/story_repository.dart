@@ -33,7 +33,8 @@ abstract class StoryRepository {
   Future<void> postStory({
     required String token,
     required String description,
-    required List<int> photo,
+    required List<int> imageFileBytes,
+    required String imageFilename,
     double? lat,
     double? lon,
   });

@@ -40,96 +40,79 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: LayoutBuilder(
-          builder: (context, constraint) => (constraint.maxHeight <= 400)
-              ? Center(child: SingleChildScrollView(child: mainContent()))
-              : mainContent(),
+      body: SafeArea(
+        child: Center(
+          child: Container(
+            width: 400.0,
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Header
+                  Text(appName, style: context.textTheme.headlineLarge),
+                  const SizedBox(height: 16.0),
+
+                  // Inputs
+                  EmailTextField(controller: emailController),
+                  PasswordTextField(
+                    controller: passwordController,
+                    isVisible: isPasswordVisible,
+                    onIconPressed: () => setState(() {
+                      isPasswordVisible = !isPasswordVisible;
+                    }),
+                    onSubmitted: (value) => doLogin(),
+                  ),
+                  const SizedBox(height: 16.0),
+
+                  // Actions
+                  const SizedBox(height: 16.0),
+                  Consumer<AuthProvider>(
+                    builder: (context, prov, child) {
+                      if (prov.state == AuthProviderState.loading) {
+                        return child!;
+                      }
+
+                      return FilledButton(
+                        onPressed: () => doLogin(),
+                        child: const Text('Log in'),
+                      );
+                    },
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Need an account?'),
+                      TextButton(
+                        onPressed: () => context.go(AppRoutePaths.register),
+                        child: const Text('Register'),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget mainContent() {
-    const textFieldMinWidth = 400.0;
+  Future<void> doLogin() async {
+    final showSnackBar = context.scaffoldMessenger.showSnackBar;
+    final authProv = context.read<AuthProvider>();
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(appName, style: context.textTheme.headlineLarge),
-        const SizedBox(height: 16.0),
-
-        // Email field
-        SizedBox(
-          width: textFieldMinWidth,
-          child: EmailTextField(controller: emailController),
-        ),
-
-        // Password field
-        SizedBox(
-          width: textFieldMinWidth,
-          child: PasswordTextField(
-            controller: passwordController,
-            isVisible: isPasswordVisible,
-            onIconPressed: () => setState(() {
-              isPasswordVisible = !isPasswordVisible;
-            }),
-            onSubmitted: (value) async {
-              final showSnackBar = context.scaffoldMessenger.showSnackBar;
-
-              try {
-                await context
-                    .read<AuthProvider>()
-                    .login(email: emailController.text, password: value);
-              } on HttpResponseException catch (e) {
-                showSnackBar(SnackBar(
-                  content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
-                ));
-              }
-            },
-          ),
-        ),
-        const SizedBox(height: 16.0),
-
-        // Actions
-        const SizedBox(height: 16.0),
-        Consumer<AuthProvider>(
-          builder: (context, prov, child) {
-            if (prov.state == AuthProviderState.loading) return child!;
-
-            return FilledButton(
-              onPressed: () async {
-                final showSnackBar = context.scaffoldMessenger.showSnackBar;
-
-                try {
-                  await prov.login(
-                    email: emailController.text,
-                    password: passwordController.text,
-                  );
-                } on HttpResponseException catch (e) {
-                  showSnackBar(SnackBar(
-                    content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
-                  ));
-                }
-              },
-              child: const Text('Log in'),
-            );
-          },
-          child: const CircularProgressIndicator(),
-        ),
-        const SizedBox(height: 8.0),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Need an account?'),
-            TextButton(
-              onPressed: () => context.go(AppRoutePaths.register),
-              child: const Text('Register'),
-            ),
-          ],
-        )
-      ],
-    );
+    try {
+      await authProv.login(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+    } on HttpResponseException catch (e) {
+      showSnackBar(SnackBar(
+        content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
+      ));
+    }
   }
 }

@@ -39,5 +39,6 @@ abstract class AppRoutePaths {
   }
 
   static const postStory = '/stories/post';
-  static String storyDetail(String id) => '/stories/$id';
+  static const camera = '/stories/camera';
+  static String storyDetail(String id) => '/stories/view/$id';
 }

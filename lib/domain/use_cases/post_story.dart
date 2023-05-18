@@ -13,14 +13,16 @@ class PostStory {
   Future<void> execute({
     required String token,
     required String description,
-    required List<int> photo,
+    required List<int> imageFileBytes,
+    required String imageFilename,
     double? lat,
     double? lon,
   }) {
     return repository.postStory(
       token: token,
       description: description,
-      photo: photo,
+      imageFileBytes: imageFileBytes,
+      imageFilename: imageFilename,
       lat: lat,
       lon: lon,
     );

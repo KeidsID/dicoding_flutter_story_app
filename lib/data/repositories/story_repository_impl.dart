@@ -107,14 +107,16 @@ class StoryRepositoryImpl implements StoryRepository {
   Future<void> postStory({
     required String token,
     required String description,
-    required List<int> photo,
+    required List<int> imageFileBytes,
+    required String imageFilename,
     double? lat,
     double? lon,
   }) async {
     await apiService.postStory(
       token: token,
       description: description,
-      photo: photo,
+      imageFileBytes: imageFileBytes,
+      imageFilename: imageFilename,
       lat: lat,
       lon: lon,
     );

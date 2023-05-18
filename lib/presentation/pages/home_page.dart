@@ -1,4 +1,5 @@
 import 'package:core/core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -61,10 +62,7 @@ class _HomePageState extends State<HomePage> {
         final isThreeColumnGrid = constraint.maxWidth >= 900.0;
 
         return Scaffold(
-          appBar: AppBar(
-            title: Text(appName),
-            centerTitle: !isOneColumnGrid,
-          ),
+          appBar: AppBar(title: Text(appName), centerTitle: !isOneColumnGrid),
           drawer: _PageDrawer(unListenAuthProv),
           body: _PageBody(
             loginInfo,
@@ -80,19 +78,43 @@ class _HomePageState extends State<HomePage> {
               crossAxisSpacing: 16.0,
               childAspectRatio: 1,
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32.0,
-              vertical: 16.0,
-            ),
+            padding: const EdgeInsets.all(16.0),
             maxWidth: isOneColumnGrid
                 ? 300.0
                 : isThreeColumnGrid
                     ? 900.0
                     : 600.0,
           ),
+          floatingActionButton: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: FloatingActionButton.extended(
+              onPressed: onFloatingActionButtonPressed(),
+              icon: const Icon(Icons.add),
+              label: const Text('Post Story'),
+            ),
+          ),
         );
       },
     );
+  }
+
+  VoidCallback onFloatingActionButtonPressed() {
+    return () {
+      final showSnackBar = context.scaffoldMessenger.showSnackBar;
+
+      final isMacOS = defaultTargetPlatform == TargetPlatform.macOS;
+      final isLinux = defaultTargetPlatform == TargetPlatform.linux;
+      if (isMacOS || isLinux) {
+        showSnackBar(const SnackBar(
+          content: Text(
+            'This feature is not available on this device',
+          ),
+        ));
+        return;
+      }
+
+      context.go(AppRoutePaths.camera);
+    };
   }
 }
 
@@ -123,23 +145,27 @@ class _PageDrawer extends StatelessWidget {
             ]),
           ),
           ListTile(
-            onTap: () async {
-              final showSnackBar = context.scaffoldMessenger.showSnackBar;
-
-              try {
-                await unListenAuthProv.logout();
-              } on HttpResponseException catch (e) {
-                showSnackBar(SnackBar(
-                  content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
-                ));
-              }
-            },
+            onTap: onLogOutTileTap(context),
             leading: const Icon(Icons.logout),
             title: const Text('Log out'),
           ),
         ],
       ),
     );
+  }
+
+  VoidCallback onLogOutTileTap(BuildContext context) {
+    return () async {
+      final showSnackBar = context.scaffoldMessenger.showSnackBar;
+
+      try {
+        await unListenAuthProv.logout();
+      } on HttpResponseException catch (e) {
+        showSnackBar(SnackBar(
+          content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
+        ));
+      }
+    };
   }
 }
 
@@ -184,7 +210,7 @@ class _PageBody extends StatelessWidget {
                 Text((isFail) ? 'Fail to fetch stories' : 'No Data'),
                 const SizedBox(height: 16.0),
                 ElevatedButton(
-                  onPressed: refreshCallback(context, storyProvider: storyProv),
+                  onPressed: () => refreshStoryProv(context),
                   child: const Text('Refresh'),
                 ),
               ],
@@ -203,9 +229,10 @@ class _PageBody extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final story = stories[index];
 
-                  return StoriesListItem(story, onTap: () {
-                    context.go(AppRoutePaths.storyDetail(story.id));
-                  });
+                  return StoriesListItem(
+                    story,
+                    onTap: () => navToStoryDetailPage(context, story.id),
+                  );
                 },
               ),
             ),
@@ -216,27 +243,27 @@ class _PageBody extends StatelessWidget {
     );
   }
 
-  VoidCallback refreshCallback(
-    BuildContext context, {
-    required StoryProvider storyProvider,
-  }) {
-    return () async {
-      final showSnackBar = context.scaffoldMessenger.showSnackBar;
+  Future<void> refreshStoryProv(BuildContext context) async {
+    final showSnackBar = context.scaffoldMessenger.showSnackBar;
 
-      try {
-        await storyProvider.fetchStories(
-          token: loginInfo.token,
-          page: page,
-          size: size,
-        );
-      } on HttpResponseException catch (e) {
-        debugPrint('$e ${e.message}');
-        showSnackBar(SnackBar(
-          content: Text(
-            e.message ?? '${e.statusCode}: ${e.name}',
-          ),
-        ));
-      }
-    };
+    final storyProv = context.read<StoryProvider>();
+
+    try {
+      await storyProv.fetchStories(
+        token: loginInfo.token,
+        page: page,
+        size: size,
+      );
+    } on HttpResponseException catch (e) {
+      showSnackBar(SnackBar(
+        content: Text(
+          e.message ?? '${e.statusCode}: ${e.name}',
+        ),
+      ));
+    }
+  }
+
+  void navToStoryDetailPage(BuildContext context, String storyId) {
+    context.go(AppRoutePaths.storyDetail(storyId));
   }
 }

@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 import 'app.dart';
 import 'dependencies/locator.dart' as dependencies;
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/image_picker_provider.dart';
 import 'presentation/providers/stories_route_queries_provider.dart';
 import 'presentation/providers/story_provider.dart';
 import 'router/utils/url_strategy.dart';
+import 'utils/global_data.dart' as global_data;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +20,7 @@ void main() async {
     useMaterial3: true,
   );
 
+  await global_data.init();
   await dependencies.init();
 
   usePathUrlStrategy();
@@ -31,6 +34,9 @@ void main() async {
         value: dependencies.locator(),
       ),
       ChangeNotifierProvider<StoriesRouteQueriesProvider>.value(
+        value: dependencies.locator(),
+      ),
+      ChangeNotifierProvider<ImagePickerProvider>.value(
         value: dependencies.locator(),
       ),
     ],

@@ -110,7 +110,8 @@ class ApiService {
   Future<CommonResponse> postStory({
     required String token,
     required String description,
-    required List<int> photo,
+    required List<int> imageFileBytes,
+    required String imageFilename,
     double? lat,
     double? lon,
   }) async {
@@ -125,7 +126,11 @@ class ApiService {
     if (lat != null) reqBodyFields.addAll({'lat': '$lat'});
     if (lon != null) reqBodyFields.addAll({'lon': '$lon'});
 
-    final photoFile = MultipartFile.fromBytes('photo', photo);
+    final photoFile = MultipartFile.fromBytes(
+      'photo',
+      imageFileBytes,
+      filename: imageFilename,
+    );
 
     request.headers.addAll(headers);
     request.fields.addAll(reqBodyFields);

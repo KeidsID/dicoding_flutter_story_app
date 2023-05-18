@@ -43,114 +43,88 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: LayoutBuilder(
-          builder: (context, constraint) => (constraint.maxHeight <= 400)
-              ? Center(child: SingleChildScrollView(child: mainContent()))
-              : mainContent(),
+      body: SafeArea(
+        child: Center(
+          child: Container(
+            width: 400.0,
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Header
+                  Text('Register Form', style: context.textTheme.headlineLarge),
+                  const SizedBox(height: 16.0),
+
+                  // Inputs
+                  TextField(
+                    controller: nameController,
+                    keyboardType: TextInputType.name,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      label: Text('Name'),
+                      hintText: 'John Doe from Dicoding',
+                    ),
+                  ),
+                  EmailTextField(controller: emailController),
+                  PasswordTextField(
+                    controller: passwordController,
+                    isVisible: isPasswordVisible,
+                    onIconPressed: () => setState(() {
+                      isPasswordVisible = !isPasswordVisible;
+                    }),
+                    onSubmitted: (value) => doRegister(),
+                  ),
+                  const SizedBox(height: 16.0),
+
+                  // Actions
+                  Consumer<AuthProvider>(
+                    builder: (context, prov, child) {
+                      if (prov.state == AuthProviderState.loading) {
+                        return child!;
+                      }
+
+                      return FilledButton(
+                        onPressed: () => doRegister(),
+                        child: const Text('Register'),
+                      );
+                    },
+                    child: const CircularProgressIndicator(),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Already have an account?'),
+                      TextButton(
+                        onPressed: () => context.go(AppRoutePaths.login),
+                        child: const Text('Log in'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget mainContent() {
-    const textFieldMinWidth = 400.0;
+  Future<void> doRegister() async {
+    final showSnackBar = context.scaffoldMessenger.showSnackBar;
+    final authProv = context.read<AuthProvider>();
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('Register Form', style: context.textTheme.headlineLarge),
-        const SizedBox(height: 16.0),
-
-        // Name field
-        SizedBox(
-          width: textFieldMinWidth,
-          child: TextField(
-            controller: nameController,
-            keyboardType: TextInputType.name,
-            textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              label: Text('Name'),
-              hintText: 'John Doe from Dicoding',
-            ),
-          ),
-        ),
-
-        // Email field
-        SizedBox(
-          width: textFieldMinWidth,
-          child: EmailTextField(controller: emailController),
-        ),
-
-        // Password field
-        SizedBox(
-          width: textFieldMinWidth,
-          child: PasswordTextField(
-            controller: passwordController,
-            isVisible: isPasswordVisible,
-            onIconPressed: () => setState(() {
-              isPasswordVisible = !isPasswordVisible;
-            }),
-            onSubmitted: (value) async {
-              final showSnackBar = context.scaffoldMessenger.showSnackBar;
-
-              final authProv = context.read<AuthProvider>();
-
-              try {
-                await authProv.register(
-                  name: nameController.text,
-                  email: emailController.text,
-                  password: value,
-                );
-              } on HttpResponseException catch (e) {
-                showSnackBar(SnackBar(
-                  content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
-                ));
-              }
-            },
-          ),
-        ),
-        const SizedBox(height: 16.0),
-
-        // Actions
-        Consumer<AuthProvider>(
-          builder: (context, prov, child) {
-            if (prov.state == AuthProviderState.loading) return child!;
-
-            return FilledButton(
-              onPressed: () async {
-                final showSnackBar = context.scaffoldMessenger.showSnackBar;
-
-                try {
-                  await prov.register(
-                    name: nameController.text,
-                    email: emailController.text,
-                    password: passwordController.text,
-                  );
-                } on HttpResponseException catch (e) {
-                  showSnackBar(SnackBar(
-                    content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
-                  ));
-                }
-              },
-              child: const Text('Register'),
-            );
-          },
-          child: const CircularProgressIndicator(),
-        ),
-        const SizedBox(height: 8.0),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Already have an account?'),
-            TextButton(
-              onPressed: () => context.go(AppRoutePaths.login),
-              child: const Text('Log in'),
-            ),
-          ],
-        )
-      ],
-    );
+    try {
+      await authProv.register(
+        name: nameController.text,
+        email: emailController.text,
+        password: passwordController.text,
+      );
+    } on HttpResponseException catch (e) {
+      showSnackBar(SnackBar(
+        content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
+      ));
+    }
   }
 }
