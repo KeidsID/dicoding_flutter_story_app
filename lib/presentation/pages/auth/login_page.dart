@@ -1,9 +1,9 @@
 import 'package:core/core.dart';
-import 'package:dicoding_flutter_story_app/router/app_route_paths.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../router/app_route_paths.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/email_text_field.dart';
 import '../../widgets/password_text_field.dart';
@@ -42,10 +42,11 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: Container(
+          child: SizedBox(
+            // Page max width
             width: 400.0,
-            padding: const EdgeInsets.all(16.0),
             child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -63,10 +64,9 @@ class _LoginPageState extends State<LoginPage> {
                     }),
                     onSubmitted: (value) => doLogin(),
                   ),
-                  const SizedBox(height: 16.0),
+                  const SizedBox(height: 32.0),
 
                   // Actions
-                  const SizedBox(height: 16.0),
                   Consumer<AuthProvider>(
                     builder: (context, prov, child) {
                       if (prov.state == AuthProviderState.loading) {

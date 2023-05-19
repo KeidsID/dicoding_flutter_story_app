@@ -6,25 +6,25 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../router/app_route_paths.dart';
-import '../providers/image_picker_provider.dart';
+import '../providers/picked_image_provider.dart';
 import '../providers/stories_route_queries_provider.dart';
 import '../widgets/image_from_x_file/image_from_x_file.dart';
 
-class CustomCameraPage extends StatefulWidget {
+class InAppCameraPage extends StatefulWidget {
   /// Use [availableCameras] method to get the camera list.
   final List<CameraDescription> cameras;
 
-  const CustomCameraPage(this.cameras, {super.key});
+  const InAppCameraPage(this.cameras, {super.key});
 
   @override
-  State<CustomCameraPage> createState() => _CustomCameraPageState();
+  State<InAppCameraPage> createState() => _InAppCameraPageState();
 }
 
-class _CustomCameraPageState extends State<CustomCameraPage>
+class _InAppCameraPageState extends State<InAppCameraPage>
     with WidgetsBindingObserver {
   bool isCamInitialized = false;
 
-  CameraController? camController;
+  CameraController? cameraController;
 
   XFile? cameraResult;
 
@@ -38,7 +38,7 @@ class _CustomCameraPageState extends State<CustomCameraPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final controller = camController;
+    final controller = cameraController;
 
     if (controller == null || !controller.value.isInitialized) return;
 
@@ -54,25 +54,25 @@ class _CustomCameraPageState extends State<CustomCameraPage>
     super.dispose();
 
     WidgetsBinding.instance.removeObserver(this);
-    camController?.dispose();
+    cameraController?.dispose();
   }
 
   Future<void> setCamController(CameraDescription camDesc) async {
-    final previousCamController = camController;
-    final newCamController = CameraController(camDesc, ResolutionPreset.medium);
+    final previousController = cameraController;
+    final newController = CameraController(camDesc, ResolutionPreset.medium);
 
-    await previousCamController?.dispose();
+    await previousController?.dispose();
 
     try {
-      await newCamController.initialize();
+      await newController.initialize();
     } on CameraException catch (e) {
-      debugPrint('Error initializing camera: $e');
+      debugPrint('Set camera controller error: $e');
     }
 
     if (mounted) {
       setState(() {
-        camController = newCamController;
-        isCamInitialized = camController!.value.isInitialized;
+        cameraController = newController;
+        isCamInitialized = cameraController!.value.isInitialized;
       });
     }
   }
@@ -95,7 +95,7 @@ class _CustomCameraPageState extends State<CustomCameraPage>
             : [
                 (kIsWeb || defaultTargetPlatform == TargetPlatform.windows)
                     ? _CameraSwitchDesktop(
-                        value: camController?.description,
+                        value: cameraController?.description,
                         items: widget.cameras,
                         onChanged: (value) => setCamController(value!),
                       )
@@ -109,11 +109,17 @@ class _CustomCameraPageState extends State<CustomCameraPage>
         child: SizedBox(
           width: 900.0,
           height: context.screenSize.height,
-          child: isCamResultNull
-              ? isCamInitialized
-                  ? CameraPreview(camController!)
-                  : const SizedBox()
-              : ImageFromXFile(cameraResult!, fit: BoxFit.cover),
+          child: cameraController == null
+              ? const Center(child: CircularProgressIndicator())
+              : isCamResultNull
+                  ? isCamInitialized
+                      ? CameraPreview(cameraController!)
+                      : const HttpErrorPage(
+                          statusCode: 501,
+                          message:
+                              'The camera failed to initialize, please change to another camera if available.',
+                        )
+                  : ImageFromXFile(cameraResult!, fit: BoxFit.cover),
         ),
       ),
       bottomNavigationBar: SizedBox(
@@ -130,7 +136,7 @@ class _CustomCameraPageState extends State<CustomCameraPage>
       floatingActionButton: !isCamResultNull
           ? null
           : FloatingActionButton.large(
-              onPressed: onCameraTake,
+              onPressed: isCamInitialized ? onCameraTake : () {},
               child: const Icon(Icons.camera_alt),
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -158,7 +164,7 @@ class _CustomCameraPageState extends State<CustomCameraPage>
 
     if (cameras.length == 1) return;
 
-    final currentCamDesc = camController?.description;
+    final currentCamDesc = cameraController?.description;
 
     if (cameras.first.name == currentCamDesc?.name) {
       setCamController(cameras[1]);
@@ -168,7 +174,7 @@ class _CustomCameraPageState extends State<CustomCameraPage>
   }
 
   Future<void> onCameraTake() async {
-    final XFile? imgFile = await camController?.takePicture();
+    final XFile? imgFile = await cameraController?.takePicture();
 
     if (imgFile == null) return;
 
@@ -178,7 +184,7 @@ class _CustomCameraPageState extends State<CustomCameraPage>
   }
 
   void onNextButtonTap() {
-    final imagePickerProv = context.read<ImagePickerProvider>();
+    final imagePickerProv = context.read<PickedImageProvider>();
 
     imagePickerProv.imageFile = cameraResult;
 
@@ -208,8 +214,7 @@ class _CameraSwitchDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 150.0,
+    return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 16.0,
         vertical: 8.0,
@@ -220,10 +225,13 @@ class _CameraSwitchDesktop extends StatelessWidget {
             .map(
               (e) => DropdownMenuItem<CameraDescription>(
                 value: e,
-                child: Text(
-                  e.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: SizedBox(
+                  width: 150.0,
+                  child: Text(
+                    e.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
             )

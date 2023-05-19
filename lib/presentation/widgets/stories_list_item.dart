@@ -109,7 +109,7 @@ class StoriesListItem extends StatelessWidget {
                           const SizedBox(height: 8.0),
                           Text(
                             description,
-                            maxLines: 1,
+                            maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],

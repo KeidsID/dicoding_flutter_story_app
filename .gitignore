@@ -16,6 +16,7 @@ migrate_working_dir/
 *.iws
 .idea/
 
+# VsCode related
 .vscode/settings.json
 
 # Flutter/Dart/Pub related

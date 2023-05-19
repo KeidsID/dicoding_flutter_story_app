@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:dicoding_flutter_story_app/domain/entities/login_info.dart';
+import '../../../domain/entities/login_info.dart';
 
 class LoginInfoModel {
   final String name;

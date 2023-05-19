@@ -24,13 +24,9 @@ class StoryDetailPage extends StatefulWidget {
 }
 
 class _StoryDetailPageState extends State<StoryDetailPage> {
-  late final AuthProvider unListenAuthProv;
-
   @override
   void initState() {
     super.initState();
-
-    unListenAuthProv = context.read();
 
     Future.microtask(() async {
       final token = context.read<AuthProvider>().loginInfo!.token;
@@ -47,7 +43,7 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final loginInfo = unListenAuthProv.loginInfo!;
+    final loginInfo = context.read<AuthProvider>().loginInfo!;
 
     return Scaffold(
       body: Consumer<StoryProvider>(
@@ -116,8 +112,51 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
   }
 }
 
-VoidCallback? backButtonCallback(BuildContext context,
-    {required int page, required int size}) {
+/// This class keeps the content widgets on wide and small device pages
+/// consistent.
+abstract class _PageContentWidgets {
+  static CircleAvatar uploaderAvatar(BuildContext context, String name) {
+    return CircleAvatar(
+      radius: 27.5,
+      child: Text(
+        name[0].toUpperCase(),
+        style: context.textTheme.headlineLarge,
+      ),
+    );
+  }
+
+  static Text fullName(BuildContext context, String name) {
+    return Text(
+      name,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: context.textTheme.headlineMedium,
+    );
+  }
+
+  static Widget createdAt(BuildContext context, DateTime createdAt) {
+    return Opacity(
+      opacity: 0.5,
+      child: Text(
+        // TODO: 'yMMMMd' format
+        '$createdAt',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: context.textTheme.titleMedium,
+      ),
+    );
+  }
+
+  static Text description(BuildContext context, String description) {
+    return Text(description, style: context.textTheme.titleLarge);
+  }
+}
+
+VoidCallback? backButtonCallback(
+  BuildContext context, {
+  required int page,
+  required int size,
+}) {
   return () => context.go(AppRoutePaths.stories(page: page, size: size));
 }
 
@@ -166,11 +205,12 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
             height: deviceHeight - (deviceHeight / 3),
             fit: BoxFit.cover,
           ),
-          // Main content draggable container.
+
+          // Main content draggable container
           Padding(
             padding: const EdgeInsets.only(top: 72.0),
             child: GestureDetector(
-              // Draggable using mouse pointer on desktop.
+              // Draggable using mouse pointer on web/desktop
               onVerticalDragUpdate: onMainContainerDrag,
               child: DraggableScrollableSheet(
                 controller: draggableScrollableController,
@@ -192,9 +232,7 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
                           child: Container(
                             decoration: BoxDecoration(
                               color: colorScheme.onBackground,
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(16.0),
-                              ),
+                              borderRadius: BorderRadius.circular(16.0),
                             ),
                             height: 4.0,
                             width: 80.0,
@@ -207,6 +245,7 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
               ),
             ),
           ),
+
           // AppBar actions
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -230,13 +269,6 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
   }
 
   Widget mainContent({ScrollController? controller}) {
-    final textTheme = context.textTheme;
-
-    // Displayed contents
-    final name = widget.story.name;
-    final createdAt = '${widget.story.createdAt}';
-    final description = widget.story.description;
-
     return Padding(
       padding: const EdgeInsets.only(top: 16.0),
       child: SingleChildScrollView(
@@ -244,36 +276,20 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Story uploader info
             Row(
               children: [
-                CircleAvatar(
-                  radius: 25.0,
-                  child: Text(
-                    name[0].toUpperCase(),
-                    style: textTheme.headlineLarge,
-                  ),
-                ),
+                _PageContentWidgets.uploaderAvatar(context, widget.story.name),
                 const SizedBox(width: 16.0),
                 Flexible(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.headlineMedium,
-                      ),
-                      Opacity(
-                        opacity: 0.5,
-                        child: Text(
-                          // TODO: Localizations it with 'yMMMMd' format
-                          createdAt,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.titleMedium,
-                        ),
+                      _PageContentWidgets.fullName(context, widget.story.name),
+                      _PageContentWidgets.createdAt(
+                        context,
+                        widget.story.createdAt,
                       ),
                     ],
                   ),
@@ -281,10 +297,9 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
               ],
             ),
             const SizedBox(height: 16.0),
-            Text(
-              description,
-              style: textTheme.titleLarge,
-            ),
+
+            // Desc
+            _PageContentWidgets.description(context, widget.story.description),
           ],
         ),
       ),
@@ -314,14 +329,9 @@ class _PageForWideDevice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
-    final textTheme = context.textTheme;
-
-    // displayed contents
-    final name = story.name;
-    final createdAt = '${story.createdAt}';
-    final description = story.description;
 
     const pageMinSize = Size(900.0, 600.0);
+    final containerBorderRadius = BorderRadius.circular(16.0);
     final storiesRouteQueries = context.read<StoriesRouteQueriesProvider>();
 
     return SafeArea(
@@ -333,15 +343,16 @@ class _PageForWideDevice extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             color: colorScheme.onBackground.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(16.0),
+            borderRadius: containerBorderRadius,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Image
               Expanded(
                 flex: 3,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16.0),
+                  borderRadius: containerBorderRadius,
                   child: CachedNetworkImage(
                     imageUrl: story.photoUrl,
                     placeholder: (_, __) => const Center(
@@ -352,6 +363,8 @@ class _PageForWideDevice extends StatelessWidget {
                   ),
                 ),
               ),
+
+              // Story details
               Expanded(
                 flex: 2,
                 child: Padding(
@@ -359,15 +372,13 @@ class _PageForWideDevice extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Story uploader info
                       Row(
                         children: [
                           Center(
-                            child: CircleAvatar(
-                              radius: 27.5,
-                              child: Text(
-                                name[0].toUpperCase(),
-                                style: textTheme.headlineLarge,
-                              ),
+                            child: _PageContentWidgets.uploaderAvatar(
+                              context,
+                              story.name,
                             ),
                           ),
                           const SizedBox(width: 16.0),
@@ -376,21 +387,13 @@ class _PageForWideDevice extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: textTheme.headlineMedium,
+                                _PageContentWidgets.fullName(
+                                  context,
+                                  story.name,
                                 ),
-                                Opacity(
-                                  opacity: 0.5,
-                                  child: Text(
-                                    // TODO: Localizations it with 'yMMMMd' format
-                                    createdAt,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: textTheme.titleMedium,
-                                  ),
+                                _PageContentWidgets.createdAt(
+                                  context,
+                                  story.createdAt,
                                 ),
                               ],
                             ),
@@ -398,14 +401,24 @@ class _PageForWideDevice extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16.0),
+
+                      // Story details
                       Expanded(
                         flex: 4,
-                        child: Text(
-                          description,
-                          style: textTheme.titleLarge,
-                          overflow: TextOverflow.ellipsis,
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.only(right: 16.0),
+                          child: Column(
+                            children: [
+                              _PageContentWidgets.description(
+                                context,
+                                story.description,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
+
+                      // Actions
                       Flexible(
                         child: Align(
                           alignment: Alignment.center,

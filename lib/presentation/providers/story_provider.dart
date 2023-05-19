@@ -10,15 +10,17 @@ import '../../domain/use_cases/post_story.dart';
 enum StoryProviderState { loading, success, fail, init }
 
 class StoryProvider extends ChangeNotifier {
-  final GetStories getStories;
-  final GetStoryDetail getStoryDetail;
-  final PostStory postStory;
+  final GetStories _getStories;
+  final GetStoryDetail _getStoryDetail;
+  final PostStory _postStory;
 
   StoryProvider({
-    required this.getStories,
-    required this.getStoryDetail,
-    required this.postStory,
-  });
+    required GetStories getStories,
+    required GetStoryDetail getStoryDetail,
+    required PostStory postStory,
+  })  : _postStory = postStory,
+        _getStoryDetail = getStoryDetail,
+        _getStories = getStories;
 
   StoryProviderState _state = StoryProviderState.init;
   List<Story> _stories = [];
@@ -46,7 +48,7 @@ class StoryProvider extends ChangeNotifier {
     _setState = StoryProviderState.loading;
 
     try {
-      _stories = await getStories.execute(
+      _stories = await _getStories.execute(
         token: token,
         page: page,
         size: size,
@@ -71,7 +73,7 @@ class StoryProvider extends ChangeNotifier {
     _setState = StoryProviderState.loading;
 
     try {
-      _story = await getStoryDetail.execute(token: token, id: id);
+      _story = await _getStoryDetail.execute(token: token, id: id);
 
       _setState = StoryProviderState.success;
     } catch (e) {
@@ -86,7 +88,7 @@ class StoryProvider extends ChangeNotifier {
   /// Note that [fetchStories] only takes token parameters in this method.
   ///
   /// Will throw a [HttpResponseException] if an error occurs.
-  Future<void> addStory({
+  Future<void> postStory({
     required String token,
     required String description,
     required List<int> imageFileBytes,
@@ -97,7 +99,7 @@ class StoryProvider extends ChangeNotifier {
     _setState = StoryProviderState.loading;
 
     try {
-      await postStory.execute(
+      await _postStory.execute(
         token: token,
         description: description,
         imageFileBytes: imageFileBytes,

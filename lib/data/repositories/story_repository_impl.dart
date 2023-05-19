@@ -1,11 +1,11 @@
 import 'package:core/core.dart';
-import 'package:dicoding_flutter_story_app/data/models/cache/login_info_model.dart';
 
 import '../../domain/entities/login_info.dart';
 import '../../domain/entities/story.dart';
 import '../../domain/repositories/story_repository.dart';
 import '../api/api_service.dart';
 import '../cache/login_info_preferences.dart';
+import '../models/cache/login_info_model.dart';
 
 class StoryRepositoryImpl implements StoryRepository {
   final ApiService apiService;

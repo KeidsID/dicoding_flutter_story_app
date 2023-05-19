@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ImagePickerProvider extends ChangeNotifier {
-  ImagePickerProvider();
+class PickedImageProvider extends ChangeNotifier {
+  PickedImageProvider();
 
   XFile? _imageFile;
 

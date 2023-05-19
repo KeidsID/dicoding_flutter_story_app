@@ -10,17 +10,20 @@ import '../../domain/use_cases/get_login_token.dart';
 enum AuthProviderState { loading, loggedIn, loggedOut, error }
 
 class AuthProvider extends ChangeNotifier {
-  final DoLogin doLogin;
-  final DoLogout doLogout;
-  final DoRegister doRegister;
-  final GetLoginToken getLoginToken;
+  final DoLogin _doLogin;
+  final DoLogout _doLogout;
+  final DoRegister _doRegister;
+  final GetLoginToken _getLoginToken;
 
   AuthProvider({
-    required this.doLogin,
-    required this.doLogout,
-    required this.doRegister,
-    required this.getLoginToken,
-  }) {
+    required DoLogin doLogin,
+    required DoLogout doLogout,
+    required DoRegister doRegister,
+    required GetLoginToken getLoginToken,
+  })  : _getLoginToken = getLoginToken,
+        _doRegister = doRegister,
+        _doLogout = doLogout,
+        _doLogin = doLogin {
     _fetchToken();
   }
 
@@ -38,7 +41,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _fetchToken() async {
     _setState = AuthProviderState.loading;
 
-    _loginInfo = await getLoginToken.execute();
+    _loginInfo = await _getLoginToken.execute();
 
     _setState = (_loginInfo == null)
         ? AuthProviderState.loggedOut
@@ -53,7 +56,7 @@ class AuthProvider extends ChangeNotifier {
     _setState = AuthProviderState.loading;
 
     try {
-      await doLogin.execute(email: email, password: password);
+      await _doLogin.execute(email: email, password: password);
 
       await _fetchToken();
     } catch (e) {
@@ -70,7 +73,7 @@ class AuthProvider extends ChangeNotifier {
     _setState = AuthProviderState.loading;
 
     try {
-      await doLogout.execute();
+      await _doLogout.execute();
 
       await _fetchToken();
     } catch (e) {
@@ -91,7 +94,7 @@ class AuthProvider extends ChangeNotifier {
     _setState = AuthProviderState.loading;
 
     try {
-      await doRegister.execute(name: name, email: email, password: password);
+      await _doRegister.execute(name: name, email: email, password: password);
 
       await login(email: email, password: password);
     } catch (e) {

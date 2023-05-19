@@ -1,4 +1,4 @@
-import 'package:dicoding_flutter_story_app/domain/entities/story.dart';
+import '../../../domain/entities/story.dart';
 
 /// The object model for the `Story` object in the API response
 class StoryObjResponse {

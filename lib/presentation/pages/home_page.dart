@@ -12,7 +12,11 @@ import '../providers/story_provider.dart';
 import '../widgets/stories_list_item.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.page, this.size});
+  const HomePage({
+    super.key,
+    this.page,
+    this.size,
+  });
 
   /// The current page of stories.
   final int? page;
@@ -53,8 +57,15 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Won't null because the auth state is loggedIn
-    final loginInfo = unListenAuthProv.loginInfo!;
+    final loginInfo = unListenAuthProv.loginInfo;
+
+    if (loginInfo == null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return LayoutBuilder(
       builder: (context, constraint) {
@@ -66,8 +77,6 @@ class _HomePageState extends State<HomePage> {
           drawer: _PageDrawer(unListenAuthProv),
           body: _PageBody(
             loginInfo,
-            page: widget.page,
-            size: widget.size,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: isOneColumnGrid
                   ? 1
@@ -76,7 +85,7 @@ class _HomePageState extends State<HomePage> {
                       : 2,
               mainAxisSpacing: 16.0,
               crossAxisSpacing: 16.0,
-              childAspectRatio: 1,
+              childAspectRatio: 3 / 4,
             ),
             padding: const EdgeInsets.all(16.0),
             maxWidth: isOneColumnGrid
@@ -172,16 +181,12 @@ class _PageDrawer extends StatelessWidget {
 class _PageBody extends StatelessWidget {
   const _PageBody(
     this.loginInfo, {
-    this.page,
-    this.size,
     required this.gridDelegate,
     this.padding,
     this.maxWidth,
   });
 
   final LoginInfo loginInfo;
-  final int? page;
-  final int? size;
 
   /// A delegate that controls the layout of the children within the [GridView].
   final SliverGridDelegate gridDelegate;
@@ -247,12 +252,13 @@ class _PageBody extends StatelessWidget {
     final showSnackBar = context.scaffoldMessenger.showSnackBar;
 
     final storyProv = context.read<StoryProvider>();
+    final storiesRouteQueries = context.read<StoriesRouteQueriesProvider>();
 
     try {
       await storyProv.fetchStories(
         token: loginInfo.token,
-        page: page,
-        size: size,
+        page: storiesRouteQueries.page,
+        size: storiesRouteQueries.size,
       );
     } on HttpResponseException catch (e) {
       showSnackBar(SnackBar(

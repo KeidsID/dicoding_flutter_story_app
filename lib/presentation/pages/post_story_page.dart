@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../router/app_route_paths.dart';
 import '../providers/auth_provider.dart';
-import '../providers/image_picker_provider.dart';
+import '../providers/picked_image_provider.dart';
 import '../providers/story_provider.dart';
 import '../widgets/image_from_x_file/image_from_x_file.dart';
 
@@ -17,23 +17,23 @@ class PostStoryPage extends StatefulWidget {
 }
 
 class _PostStoryPageState extends State<PostStoryPage> {
-  late final TextEditingController descController;
+  late final TextEditingController descriptionController;
 
-  late final ImagePickerProvider imagePickerProvider;
+  late final PickedImageProvider imagePickerProvider;
 
   @override
   void initState() {
     super.initState();
 
-    descController = TextEditingController();
-    imagePickerProvider = context.read<ImagePickerProvider>();
+    descriptionController = TextEditingController();
+    imagePickerProvider = context.read<PickedImageProvider>();
   }
 
   @override
   void dispose() {
     super.dispose();
 
-    descController.dispose();
+    descriptionController.dispose();
   }
 
   @override
@@ -56,6 +56,7 @@ class _PostStoryPageState extends State<PostStoryPage> {
         leading: IconButton(
           onPressed: onAppBarLeadingTap,
           icon: const Icon(Icons.clear),
+          tooltip: 'Discard',
         ),
         title: const Text("Post Story"),
         centerTitle: true,
@@ -74,7 +75,7 @@ class _PostStoryPageState extends State<PostStoryPage> {
                   fit: BoxFit.cover,
                 ),
                 TextField(
-                  controller: descController,
+                  controller: descriptionController,
                   keyboardType: TextInputType.multiline,
                   textInputAction: TextInputAction.newline,
                   decoration: const InputDecoration(
@@ -97,9 +98,7 @@ class _PostStoryPageState extends State<PostStoryPage> {
                       label: const Text('Post'),
                     );
                   },
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
               ],
             ),
@@ -136,27 +135,26 @@ class _PostStoryPageState extends State<PostStoryPage> {
 
   Future<void> onPostStory() async {
     final showSnackBar = context.scaffoldMessenger.showSnackBar;
+    final navigateTo = context.go;
 
     final loginInfo = context.read<AuthProvider>().loginInfo!;
     final storyProvider = context.read<StoryProvider>();
     final imageFile = imagePickerProvider.imageFile;
 
-    final goRouterNav = context.go;
-
     final imageFileByte = await imageFile!.readAsBytes();
     final imageFilename = imageFile.name;
 
     try {
-      await storyProvider.addStory(
+      await storyProvider.postStory(
         token: loginInfo.token,
-        description: descController.text,
+        description: descriptionController.text,
         imageFileBytes: imageFileByte,
         imageFilename: imageFilename,
       );
 
       imagePickerProvider.imageFile = null;
 
-      goRouterNav(AppRoutePaths.stories());
+      navigateTo(AppRoutePaths.stories());
     } on HttpResponseException catch (e) {
       showSnackBar(SnackBar(content: Text('${e.message}')));
     }

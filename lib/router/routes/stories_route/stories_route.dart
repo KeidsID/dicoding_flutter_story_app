@@ -1,12 +1,12 @@
 import 'package:core/core.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../presentation/pages/custom_camera_page.dart';
+import '../../../presentation/pages/in_app_camera_page.dart';
 import '../../../presentation/pages/home_page.dart';
 import '../../../presentation/pages/post_story_page.dart';
 import '../../../presentation/pages/story_detail_page.dart';
 import '../../../presentation/widgets/text_button_to_home.dart';
-import '../../../utils/global_data.dart' as global_data;
+import '../../../data/apps/global_data.dart' as global_data;
 import '../../app_route_paths.dart';
 
 part 'routes/camera_route.dart';
