@@ -97,7 +97,7 @@ class _HomePageState extends State<HomePage> {
           floatingActionButton: Padding(
             padding: const EdgeInsets.all(16.0),
             child: FloatingActionButton.extended(
-              onPressed: onFloatingActionButtonPressed(),
+              onPressed: navToPostStory,
               icon: const Icon(Icons.add),
               label: const Text('Post Story'),
             ),
@@ -107,23 +107,21 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  VoidCallback onFloatingActionButtonPressed() {
-    return () {
-      final showSnackBar = context.scaffoldMessenger.showSnackBar;
+  void navToPostStory() {
+    final showSnackBar = context.scaffoldMessenger.showSnackBar;
 
-      final isMacOS = defaultTargetPlatform == TargetPlatform.macOS;
-      final isLinux = defaultTargetPlatform == TargetPlatform.linux;
-      if (isMacOS || isLinux) {
-        showSnackBar(const SnackBar(
-          content: Text(
-            'This feature is not available on this device',
-          ),
-        ));
-        return;
-      }
+    final isMacOS = defaultTargetPlatform == TargetPlatform.macOS;
+    final isLinux = defaultTargetPlatform == TargetPlatform.linux;
+    if (isMacOS || isLinux) {
+      showSnackBar(const SnackBar(
+        content: Text(
+          'This feature is not available on this device',
+        ),
+      ));
+      return;
+    }
 
-      context.go(AppRoutePaths.camera);
-    };
+    context.go(AppRoutePaths.camera);
   }
 }
 

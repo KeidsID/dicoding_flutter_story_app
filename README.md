@@ -2,10 +2,9 @@
 
 # dicoding_flutter_story_app
 
-Project assignment from the [second Flutter Intermediate class][class-link] from
-[Dicoding](https://www.dicoding.com). With this assignment, students are
-expected to be able to use a variety of advanced components such as routing
-mechanisms, media (image, audio, etc.) usage, and world map.
+Projects from [dicoding.com flutter class][class-link] as a practice in advanced
+navigation, use of media (audio, images, and video), and use of maps such as
+Google Maps.
 
 API for this project: https://story-api.dicoding.dev/v1/
 

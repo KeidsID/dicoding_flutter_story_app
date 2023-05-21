@@ -1,13 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:core/core.dart';
+import 'package:dicoding_flutter_story_app/presentation/providers/stories_route_queries_provider.dart';
+import 'package:dicoding_flutter_story_app/router/app_route_paths.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/entities/story.dart';
-import '../../router/app_route_paths.dart';
+import '../../utils/navigate_to_home.dart';
 import '../providers/auth_provider.dart';
-import '../providers/stories_route_queries_provider.dart';
 import '../providers/story_provider.dart';
 import '../widgets/text_button_to_home.dart';
 
@@ -152,14 +153,6 @@ abstract class _PageContentWidgets {
   }
 }
 
-VoidCallback? backButtonCallback(
-  BuildContext context, {
-  required int page,
-  required int size,
-}) {
-  return () => context.go(AppRoutePaths.stories(page: page, size: size));
-}
-
 class _PageForSmallDevice extends StatefulWidget {
   const _PageForSmallDevice(this.story);
 
@@ -189,8 +182,6 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
     final deviceWidth = context.mediaQuery.size.width;
     final deviceHeight = context.mediaQuery.size.height;
     final colorScheme = context.theme.colorScheme;
-
-    final storiesRouteQueries = context.read<StoriesRouteQueriesProvider>();
 
     return SafeArea(
       child: Stack(
@@ -255,11 +246,7 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
               child: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 color: colorScheme.onBackground,
-                onPressed: backButtonCallback(
-                  context,
-                  page: storiesRouteQueries.page,
-                  size: storiesRouteQueries.size,
-                ),
+                onPressed: () => navigateToHome(context),
               ),
             ),
           ),
@@ -332,7 +319,6 @@ class _PageForWideDevice extends StatelessWidget {
 
     const pageMinSize = Size(900.0, 600.0);
     final containerBorderRadius = BorderRadius.circular(16.0);
-    final storiesRouteQueries = context.read<StoriesRouteQueriesProvider>();
 
     return SafeArea(
       child: Center(
@@ -423,11 +409,7 @@ class _PageForWideDevice extends StatelessWidget {
                         child: Align(
                           alignment: Alignment.center,
                           child: ElevatedButton(
-                            onPressed: backButtonCallback(
-                              context,
-                              page: storiesRouteQueries.page,
-                              size: storiesRouteQueries.size,
-                            ),
+                            onPressed: () => navigateToHome(context),
                             child: const Text('Go Back'),
                           ),
                         ),

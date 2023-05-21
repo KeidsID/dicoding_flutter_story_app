@@ -1,13 +1,14 @@
 import 'package:camera/camera.dart';
 import 'package:core/core.dart';
+import 'package:dicoding_flutter_story_app/utils/navigate_to_home.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../router/app_route_paths.dart';
+import '../../utils/pick_image_from_gallery.dart';
 import '../providers/picked_image_provider.dart';
-import '../providers/stories_route_queries_provider.dart';
 import '../widgets/image_from_x_file/image_from_x_file.dart';
 
 class InAppCameraPage extends StatefulWidget {
@@ -81,6 +82,8 @@ class _InAppCameraPageState extends State<InAppCameraPage>
   Widget build(BuildContext context) {
     final isCamResultNull = cameraResult == null;
 
+    final isSmallDevice = context.screenSize.width <= 600.0;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -109,17 +112,39 @@ class _InAppCameraPageState extends State<InAppCameraPage>
         child: SizedBox(
           width: 900.0,
           height: context.screenSize.height,
-          child: cameraController == null
-              ? const Center(child: CircularProgressIndicator())
-              : isCamResultNull
-                  ? isCamInitialized
-                      ? CameraPreview(cameraController!)
-                      : const HttpErrorPage(
-                          statusCode: 501,
-                          message:
-                              'The camera failed to initialize, please change to another camera if available.',
-                        )
-                  : ImageFromXFile(cameraResult!, fit: BoxFit.cover),
+          child: !isCamResultNull
+              ? ImageFromXFile(cameraResult!, fit: BoxFit.cover)
+              : Stack(
+                  children: [
+                    // Camera
+                    cameraController == null
+                        ? const Center(child: CircularProgressIndicator())
+                        : SizedBox.expand(
+                            child: isCamInitialized
+                                ? CameraPreview(cameraController!)
+                                : const HttpErrorPage(
+                                    statusCode: 501,
+                                    message:
+                                        'The camera failed to initialize, please change to another camera if available.',
+                                  ),
+                          ),
+
+                    // Upload image button
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0).copyWith(
+                          bottom: isSmallDevice ? 60.0 : 16.0,
+                        ),
+                        child: FilledButton.tonalIcon(
+                          onPressed: () => pickImageFromGallery(context),
+                          icon: const Icon(Icons.image_rounded),
+                          label: const Text('From gallery'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
       bottomNavigationBar: SizedBox(
@@ -136,7 +161,7 @@ class _InAppCameraPageState extends State<InAppCameraPage>
       floatingActionButton: !isCamResultNull
           ? null
           : FloatingActionButton.large(
-              onPressed: isCamInitialized ? onCameraTake : () {},
+              onPressed: isCamInitialized ? takePictureFromCamera : () {},
               child: const Icon(Icons.camera_alt),
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -145,18 +170,8 @@ class _InAppCameraPageState extends State<InAppCameraPage>
 
   VoidCallback? onAppBarLeadingTap() {
     return cameraResult == null
-        ? () {
-            final storiesRouteQueriesProv =
-                context.read<StoriesRouteQueriesProvider>();
-
-            context.go(AppRoutePaths.stories(
-              page: storiesRouteQueriesProv.page,
-              size: storiesRouteQueriesProv.size,
-            ));
-          }
-        : () {
-            setState(() => cameraResult = null);
-          };
+        ? () => navigateToHome(context)
+        : () => setState(() => cameraResult = null);
   }
 
   void onMobileCamSwitch() {
@@ -173,7 +188,7 @@ class _InAppCameraPageState extends State<InAppCameraPage>
     }
   }
 
-  Future<void> onCameraTake() async {
+  Future<void> takePictureFromCamera() async {
     final XFile? imgFile = await cameraController?.takePicture();
 
     if (imgFile == null) return;
@@ -226,7 +241,7 @@ class _CameraSwitchDesktop extends StatelessWidget {
               (e) => DropdownMenuItem<CameraDescription>(
                 value: e,
                 child: SizedBox(
-                  width: 150.0,
+                  width: 200.0,
                   child: Text(
                     e.name,
                     maxLines: 1,

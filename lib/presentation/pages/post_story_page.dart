@@ -92,9 +92,9 @@ class _PostStoryPageState extends State<PostStoryPage> {
 
                     if (isLoading) return child!;
 
-                    return FloatingActionButton.extended(
+                    return FilledButton.icon(
                       onPressed: onPostStory,
-                      icon: const Icon(Icons.upload),
+                      icon: const Icon(Icons.cloud_upload_rounded),
                       label: const Text('Post'),
                     );
                   },

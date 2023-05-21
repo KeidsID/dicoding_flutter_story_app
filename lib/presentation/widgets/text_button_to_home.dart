@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../router/app_route_paths.dart';
+import '../../utils/navigate_to_home.dart';
 
 /// [TextButton] which when pressed will navigate to the home page
 /// (`/stories?page=1&size=10`).
@@ -11,7 +10,7 @@ class TextButtonToHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: () => context.go(AppRoutePaths.stories()),
+      onPressed: () => navigateToHome(context, isQueriesProvided: false),
       child: const Text('Back to Home page'),
     );
   }

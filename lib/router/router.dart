@@ -14,11 +14,12 @@ import 'routes/stories_route/stories_route.dart';
 final router = GoRouter(
   // To prevent null login info on homepage.
   initialLocation: AppRoutePaths.login,
+  refreshListenable: dependencies.locator<AuthProvider>(),
+  routerNeglect: true,
   errorBuilder: (_, state) {
     debugPrint('${state.error}');
     return const HttpErrorPage(statusCode: 404, child: TextButtonToHome());
   },
-  refreshListenable: dependencies.locator<AuthProvider>(),
   redirect: (context, state) {
     final authProvider = context.read<AuthProvider>();
 
