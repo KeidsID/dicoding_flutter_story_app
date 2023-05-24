@@ -5,11 +5,11 @@ import 'package:provider/provider.dart';
 import 'app.dart';
 import 'dependencies/locator.dart' as dependencies;
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/cameras_provider.dart';
 import 'presentation/providers/picked_image_provider.dart';
 import 'presentation/providers/stories_route_queries_provider.dart';
 import 'presentation/providers/story_provider.dart';
-import 'router/utils/url_strategy.dart';
-import 'data/apps/global_data.dart' as global_data;
+import 'router/utils/url_strategy/url_strategy.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +20,6 @@ void main() async {
     useMaterial3: true,
   );
 
-  await global_data.init();
   await dependencies.init();
 
   usePathUrlStrategy();
@@ -30,13 +29,16 @@ void main() async {
       ChangeNotifierProvider<AuthProvider>.value(
         value: dependencies.locator(),
       ),
-      ChangeNotifierProvider<StoryProvider>.value(
+      ChangeNotifierProvider<CamerasProvider>.value(
+        value: dependencies.locator(),
+      ),
+      ChangeNotifierProvider<PickedImageProvider>.value(
         value: dependencies.locator(),
       ),
       ChangeNotifierProvider<StoriesRouteQueriesProvider>.value(
         value: dependencies.locator(),
       ),
-      ChangeNotifierProvider<PickedImageProvider>.value(
+      ChangeNotifierProvider<StoryProvider>.value(
         value: dependencies.locator(),
       ),
     ],

@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../pages/home_page.dart';
-
-/// Provides queries from [HomePage] route.
-///
-/// Use only on widgets (Not on the router).
+/// Provide queries for the "/stories" route.
 class StoriesRouteQueriesProvider extends ChangeNotifier {
   StoriesRouteQueriesProvider();
 

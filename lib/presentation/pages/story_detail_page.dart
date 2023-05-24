@@ -1,16 +1,16 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:io';
+
 import 'package:core/core.dart';
-import 'package:dicoding_flutter_story_app/presentation/providers/stories_route_queries_provider.dart';
-import 'package:dicoding_flutter_story_app/router/app_route_paths.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/entities/story.dart';
-import '../../utils/navigate_to_home.dart';
+import '../../router/utils/navigate_to_stories_page.dart';
 import '../providers/auth_provider.dart';
 import '../providers/story_provider.dart';
-import '../widgets/text_button_to_home.dart';
+import '../widgets/app_alert_dialog.dart';
+import '../widgets/image_from_network.dart';
+import '../widgets/back_to_home_button.dart';
 
 class StoryDetailPage extends StatefulWidget {
   const StoryDetailPage(
@@ -49,21 +49,25 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
     return Scaffold(
       body: Consumer<StoryProvider>(
         builder: (context, storyProv, child) {
-          final isProvFirstInit = storyProv.state == StoryProviderState.init;
+          final isFail = storyProv.state == StoryProviderState.serverFail;
           final isLoading = storyProv.state == StoryProviderState.loading;
-          final isFail = storyProv.state == StoryProviderState.fail;
+          final isProvFirstInit = storyProv.state == StoryProviderState.init;
+          final isSuccess = storyProv.state == StoryProviderState.success;
+
           final story = storyProv.story;
 
           if (isLoading || isProvFirstInit) return child!;
 
-          if (isFail) {
+          if (!(isSuccess)) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Fail to fetch story detail'),
-                  const SizedBox(height: 8.0),
-                  ElevatedButton(
+              child: AppAlertDialog(
+                content: Text(
+                  (isFail)
+                      ? 'Fail to fetch story detail'
+                      : 'No internet connection',
+                ),
+                actions: [
+                  TextButton(
                     onPressed: () => refreshStoryDetail(loginInfo.token),
                     child: const Text('Refresh'),
                   ),
@@ -75,7 +79,7 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
           if (story == null) {
             return const HttpErrorPage(
               statusCode: 404,
-              child: TextButtonToHome(),
+              child: BackToHomeButton(),
             );
           }
 
@@ -108,7 +112,7 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
         ),
       ));
     } catch (e) {
-      showSnackBar(SnackBar(content: Text('$e')));
+      showSnackBar(const SnackBar(content: Text('No internet connection')));
     }
   }
 }
@@ -116,7 +120,7 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
 /// This class keeps the content widgets on wide and small device pages
 /// consistent.
 abstract class _PageContentWidgets {
-  static CircleAvatar uploaderAvatar(BuildContext context, String name) {
+  static CircleAvatar circleAvatar(BuildContext context, String name) {
     return CircleAvatar(
       radius: 27.5,
       child: Text(
@@ -126,7 +130,7 @@ abstract class _PageContentWidgets {
     );
   }
 
-  static Text fullName(BuildContext context, String name) {
+  static Text name(BuildContext context, String name) {
     return Text(
       name,
       maxLines: 1,
@@ -187,11 +191,8 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
       child: Stack(
         children: [
           // Background (image)
-          CachedNetworkImage(
+          ImageFromNetwork(
             imageUrl: widget.story.photoUrl,
-            placeholder: (_, __) => const Center(
-              child: CircularProgressIndicator(),
-            ),
             width: deviceWidth,
             height: deviceHeight - (deviceHeight / 3),
             fit: BoxFit.cover,
@@ -209,11 +210,17 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
                 builder: (context, scrollController) {
                   return Container(
                     decoration: BoxDecoration(
-                      color: colorScheme.background,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16.0),
-                      ),
-                    ),
+                        color: colorScheme.surface,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16.0),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.shadow.withOpacity(0.25),
+                            blurRadius: 6.0,
+                            spreadRadius: 2.0,
+                          ),
+                        ]),
                     padding: const EdgeInsets.all(16.0),
                     child: Stack(
                       children: [
@@ -222,7 +229,7 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
                           alignment: Alignment.topCenter,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: colorScheme.onBackground,
+                              color: colorScheme.onSurface,
                               borderRadius: BorderRadius.circular(16.0),
                             ),
                             height: 4.0,
@@ -240,13 +247,18 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
           // AppBar actions
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: CircleAvatar(
-              backgroundColor: colorScheme.background,
-              foregroundColor: Colors.white,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                color: colorScheme.onBackground,
-                onPressed: () => navigateToHome(context),
+            child: PhysicalModel(
+              color: colorScheme.background,
+              elevation: 3,
+              shape: BoxShape.circle,
+              child: CircleAvatar(
+                backgroundColor: colorScheme.background,
+                foregroundColor: Colors.white,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  color: colorScheme.onBackground,
+                  onPressed: () => navigateToStoriesPage(context),
+                ),
               ),
             ),
           ),
@@ -266,14 +278,14 @@ class _PageForSmallDeviceState extends State<_PageForSmallDevice> {
             // Story uploader info
             Row(
               children: [
-                _PageContentWidgets.uploaderAvatar(context, widget.story.name),
+                _PageContentWidgets.circleAvatar(context, widget.story.name),
                 const SizedBox(width: 16.0),
                 Flexible(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _PageContentWidgets.fullName(context, widget.story.name),
+                      _PageContentWidgets.name(context, widget.story.name),
                       _PageContentWidgets.createdAt(
                         context,
                         widget.story.createdAt,
@@ -315,110 +327,104 @@ class _PageForWideDevice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = context.theme.colorScheme;
-
     const pageMinSize = Size(900.0, 600.0);
-    final containerBorderRadius = BorderRadius.circular(16.0);
 
     return SafeArea(
       child: Center(
-        child: Container(
-          width: pageMinSize.width,
-          height: pageMinSize.height,
+        child: Card(
           margin: const EdgeInsets.all(16.0),
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: colorScheme.onBackground.withOpacity(0.05),
-            borderRadius: containerBorderRadius,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image
-              Expanded(
-                flex: 3,
-                child: ClipRRect(
-                  borderRadius: containerBorderRadius,
-                  child: CachedNetworkImage(
-                    imageUrl: story.photoUrl,
-                    placeholder: (_, __) => const Center(
-                      child: CircularProgressIndicator(),
+          child: SizedBox(
+            width: pageMinSize.width,
+            height: pageMinSize.height,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image
+                  Expanded(
+                    flex: 3,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12.0),
+                      child: ImageFromNetwork(
+                        imageUrl: story.photoUrl,
+                        height: pageMinSize.height,
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                    height: pageMinSize.height,
-                    fit: BoxFit.cover,
                   ),
-                ),
-              ),
 
-              // Story details
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Story uploader info
-                      Row(
+                  // Story details
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Center(
-                            child: _PageContentWidgets.uploaderAvatar(
-                              context,
-                              story.name,
-                            ),
-                          ),
-                          const SizedBox(width: 16.0),
-                          Flexible(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _PageContentWidgets.fullName(
+                          // Story uploader info
+                          Row(
+                            children: [
+                              Center(
+                                child: _PageContentWidgets.circleAvatar(
                                   context,
                                   story.name,
                                 ),
-                                _PageContentWidgets.createdAt(
-                                  context,
-                                  story.createdAt,
+                              ),
+                              const SizedBox(width: 16.0),
+                              Flexible(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _PageContentWidgets.name(
+                                      context,
+                                      story.name,
+                                    ),
+                                    _PageContentWidgets.createdAt(
+                                      context,
+                                      story.createdAt,
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16.0),
+
+                          // Story details
+                          Expanded(
+                            flex: 4,
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.only(right: 16.0),
+                              child: Column(
+                                children: [
+                                  _PageContentWidgets.description(
+                                    context,
+                                    story.description,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Actions
+                          Flexible(
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: FilledButton.tonal(
+                                onPressed: () => navigateToStoriesPage(context),
+                                child: const Text('Go Back'),
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
-
-                      // Story details
-                      Expanded(
-                        flex: 4,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.only(right: 16.0),
-                          child: Column(
-                            children: [
-                              _PageContentWidgets.description(
-                                context,
-                                story.description,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Actions
-                      Flexible(
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: ElevatedButton(
-                            onPressed: () => navigateToHome(context),
-                            child: const Text('Go Back'),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

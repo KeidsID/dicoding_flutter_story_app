@@ -1,4 +1,5 @@
 import '../data/api/api_service.dart';
+import '../presentation/providers/cameras_provider.dart';
 
 /// Paths that used to navigation.
 ///
@@ -39,6 +40,8 @@ abstract class AppRoutePaths {
   }
 
   static const postStory = '/stories/post';
+
+  /// Fetch cameras from [CamerasProvider] first before navigate to this route.
   static const camera = '/stories/camera';
   static String storyDetail(String id) => '/stories/view/$id';
 }

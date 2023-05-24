@@ -1,4 +1,4 @@
-part of 'locator.dart';
+part of '../locator.dart';
 
 Future<void> _servicesInit() async {
   final sharedPreferences = await SharedPreferences.getInstance();

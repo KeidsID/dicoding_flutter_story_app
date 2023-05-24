@@ -1,4 +1,4 @@
-part of 'locator.dart';
+part of '../locator.dart';
 
 void _storyRepositoryInit() {
   locator.registerLazySingleton<StoryRepository>(() {

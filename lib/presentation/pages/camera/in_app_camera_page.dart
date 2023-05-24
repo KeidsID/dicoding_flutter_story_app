@@ -1,15 +1,15 @@
 import 'package:camera/camera.dart';
 import 'package:core/core.dart';
-import 'package:dicoding_flutter_story_app/utils/navigate_to_home.dart';
+import 'package:dicoding_flutter_story_app/router/utils/navigate_to_stories_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../router/app_route_paths.dart';
-import '../../utils/pick_image_from_gallery.dart';
-import '../providers/picked_image_provider.dart';
-import '../widgets/image_from_x_file/image_from_x_file.dart';
+import '../../../router/app_route_paths.dart';
+import '../../providers/picked_image_provider.dart';
+import '../../widgets/image_from_x_file/image_from_x_file.dart';
 
 class InAppCameraPage extends StatefulWidget {
   /// Use [availableCameras] method to get the camera list.
@@ -23,7 +23,7 @@ class InAppCameraPage extends StatefulWidget {
 
 class _InAppCameraPageState extends State<InAppCameraPage>
     with WidgetsBindingObserver {
-  bool isCamInitialized = false;
+  bool? isCamInitialized = false;
 
   CameraController? cameraController;
 
@@ -60,7 +60,7 @@ class _InAppCameraPageState extends State<InAppCameraPage>
 
   Future<void> setCamController(CameraDescription camDesc) async {
     final previousController = cameraController;
-    final newController = CameraController(camDesc, ResolutionPreset.medium);
+    final newController = CameraController(camDesc, ResolutionPreset.max);
 
     await previousController?.dispose();
 
@@ -81,8 +81,6 @@ class _InAppCameraPageState extends State<InAppCameraPage>
   @override
   Widget build(BuildContext context) {
     final isCamResultNull = cameraResult == null;
-
-    final isSmallDevice = context.screenSize.width <= 600.0;
 
     return Scaffold(
       appBar: AppBar(
@@ -117,10 +115,10 @@ class _InAppCameraPageState extends State<InAppCameraPage>
               : Stack(
                   children: [
                     // Camera
-                    cameraController == null
+                    (cameraController == null || isCamInitialized == null)
                         ? const Center(child: CircularProgressIndicator())
                         : SizedBox.expand(
-                            child: isCamInitialized
+                            child: (isCamInitialized ?? false)
                                 ? CameraPreview(cameraController!)
                                 : const HttpErrorPage(
                                     statusCode: 501,
@@ -130,16 +128,20 @@ class _InAppCameraPageState extends State<InAppCameraPage>
                           ),
 
                     // Upload image button
-                    Align(
-                      alignment: Alignment.bottomRight,
+                    SizedBox.expand(
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0).copyWith(
-                          bottom: isSmallDevice ? 60.0 : 16.0,
-                        ),
-                        child: FilledButton.tonalIcon(
-                          onPressed: () => pickImageFromGallery(context),
-                          icon: const Icon(Icons.image_rounded),
-                          label: const Text('From gallery'),
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            FilledButton.tonalIcon(
+                              onPressed: pickImageFromGallery,
+                              icon: const Icon(Icons.image_rounded),
+                              label: const Text('Upload'),
+                            ),
+                            const SizedBox(height: 15.0),
+                          ],
                         ),
                       ),
                     ),
@@ -149,7 +151,7 @@ class _InAppCameraPageState extends State<InAppCameraPage>
       ),
       bottomNavigationBar: SizedBox(
         height: kToolbarHeight,
-        child: isCamResultNull
+        child: (isCamResultNull)
             ? null
             : Center(
                 child: FilledButton(
@@ -161,7 +163,8 @@ class _InAppCameraPageState extends State<InAppCameraPage>
       floatingActionButton: !isCamResultNull
           ? null
           : FloatingActionButton.large(
-              onPressed: isCamInitialized ? takePictureFromCamera : () {},
+              onPressed:
+                  (isCamInitialized ?? false) ? takePictureFromCamera : () {},
               child: const Icon(Icons.camera_alt),
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -170,7 +173,7 @@ class _InAppCameraPageState extends State<InAppCameraPage>
 
   VoidCallback? onAppBarLeadingTap() {
     return cameraResult == null
-        ? () => navigateToHome(context)
+        ? () => navigateToStoriesPage(context)
         : () => setState(() => cameraResult = null);
   }
 
@@ -196,6 +199,28 @@ class _InAppCameraPageState extends State<InAppCameraPage>
     setState(() {
       cameraResult = imgFile;
     });
+  }
+
+  Future<void> pickImageFromGallery() async {
+    final navigateTo = context.go;
+
+    final pickedImageProv = context.read<PickedImageProvider>();
+    final imgPicker = ImagePicker();
+
+    final XFile? pickedImage = await imgPicker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedImage == null) return;
+
+    pickedImageProv.imageFile = pickedImage;
+
+    setState(() {
+      // To avoid cameraController disposed exception on [CameraPreview].
+      isCamInitialized = null;
+    });
+
+    navigateTo(AppRoutePaths.postStory);
   }
 
   void onNextButtonTap() {

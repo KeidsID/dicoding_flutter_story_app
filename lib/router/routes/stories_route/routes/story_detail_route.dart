@@ -6,7 +6,7 @@ final _storyDetailRoute = GoRoute(
     final storyId = state.pathParameters['id'];
 
     if (storyId == null) {
-      return const HttpErrorPage(statusCode: 400, child: TextButtonToHome());
+      return const HttpErrorPage(statusCode: 400, child: BackToHomeButton());
     }
 
     return StoryDetailPage(storyId);

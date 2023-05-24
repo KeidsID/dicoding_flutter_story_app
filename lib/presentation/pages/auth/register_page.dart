@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -80,8 +82,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   // Actions
                   Consumer<AuthProvider>(
-                    builder: (context, prov, child) {
-                      if (prov.state == AuthProviderState.loading) {
+                    builder: (context, authProv, child) {
+                      if (authProv.state == AuthProviderState.loading) {
                         return child!;
                       }
 
@@ -126,6 +128,8 @@ class _RegisterPageState extends State<RegisterPage> {
       showSnackBar(SnackBar(
         content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
       ));
+    } catch (e) {
+      showSnackBar(const SnackBar(content: Text('No internet connection')));
     }
   }
 }

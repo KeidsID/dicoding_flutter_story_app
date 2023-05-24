@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
@@ -7,7 +9,18 @@ import '../../domain/use_cases/do_logout.dart';
 import '../../domain/use_cases/do_register.dart';
 import '../../domain/use_cases/get_login_token.dart';
 
-enum AuthProviderState { loading, loggedIn, loggedOut, error }
+enum AuthProviderState {
+  /// Asynchronous process running.
+  loading,
+  loggedIn,
+  loggedOut,
+
+  /// On [HttpResponseException] thrown.
+  serverFail,
+
+  /// On [SocketException] thrown
+  connectionFail,
+}
 
 class AuthProvider extends ChangeNotifier {
   final DoLogin _doLogin;
@@ -51,7 +64,7 @@ class AuthProvider extends ChangeNotifier {
   /// Log in to Dicoding Story API, then update [state], [loginInfo], and
   /// [username] based on the results.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs.
+  /// Will throw an [Exception] if an error occurs.
   Future<void> login({required String email, required String password}) async {
     _setState = AuthProviderState.loading;
 
@@ -59,8 +72,11 @@ class AuthProvider extends ChangeNotifier {
       await _doLogin.execute(email: email, password: password);
 
       await _fetchToken();
-    } catch (e) {
-      _setState = AuthProviderState.error;
+    } on HttpResponseException {
+      _setState = AuthProviderState.serverFail;
+      rethrow;
+    } on SocketException {
+      _setState = AuthProviderState.connectionFail;
       rethrow;
     }
   }
@@ -68,7 +84,7 @@ class AuthProvider extends ChangeNotifier {
   /// Log out by deleting the login token in the cache, then update [state] and
   /// [loginInfo] based on the results.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs.
+  /// Will throw a [HttpResponseException] if an error occurs from the server.
   Future<void> logout() async {
     _setState = AuthProviderState.loading;
 
@@ -76,8 +92,8 @@ class AuthProvider extends ChangeNotifier {
       await _doLogout.execute();
 
       await _fetchToken();
-    } catch (e) {
-      _setState = AuthProviderState.error;
+    } on HttpResponseException {
+      _setState = AuthProviderState.serverFail;
       rethrow;
     }
   }
@@ -85,7 +101,7 @@ class AuthProvider extends ChangeNotifier {
   /// Register as new user to Dicoding Story API, then call [login] after the
   /// register process is complete.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs.
+  /// Will throw an [Exception] if an error occurs.
   Future<void> register({
     required String name,
     required String email,
@@ -97,8 +113,11 @@ class AuthProvider extends ChangeNotifier {
       await _doRegister.execute(name: name, email: email, password: password);
 
       await login(email: email, password: password);
-    } catch (e) {
-      _setState = AuthProviderState.error;
+    } on HttpResponseException {
+      _setState = AuthProviderState.serverFail;
+      rethrow;
+    } on SocketException {
+      _setState = AuthProviderState.connectionFail;
       rethrow;
     }
   }

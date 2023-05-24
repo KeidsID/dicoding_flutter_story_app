@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:core/core.dart';
+import 'package:dicoding_flutter_story_app/presentation/providers/stories_route_queries_provider.dart';
+import 'package:dicoding_flutter_story_app/presentation/widgets/app_alert_dialog.dart';
+import 'package:dicoding_flutter_story_app/router/utils/navigate_to_stories_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -87,10 +92,9 @@ class _PostStoryPageState extends State<PostStoryPage> {
                 const SizedBox(height: 16.0),
                 Consumer<StoryProvider>(
                   builder: (context, storyProv, child) {
-                    final isLoading =
-                        storyProv.state == StoryProviderState.loading;
-
-                    if (isLoading) return child!;
+                    if (storyProv.state == StoryProviderState.loading) {
+                      return child!;
+                    }
 
                     return FilledButton.icon(
                       onPressed: onPostStory,
@@ -112,9 +116,10 @@ class _PostStoryPageState extends State<PostStoryPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
+        return AppAlertDialog(
           title: const Text('Discard Story'),
           content: const Text('Are you sure?'),
+          isDefaultActionIncluded: false,
           actions: [
             TextButton(
               onPressed: () => context.pop(),
@@ -135,13 +140,24 @@ class _PostStoryPageState extends State<PostStoryPage> {
 
   Future<void> onPostStory() async {
     final showSnackBar = context.scaffoldMessenger.showSnackBar;
-    final navigateTo = context.go;
+    final storiesRouteQueries = context.read<StoriesRouteQueriesProvider>();
+    void navToHome({bool isQueriesProvided = true}) {
+      return navigateToStoriesPage(
+        context,
+        isQueriesProvided: isQueriesProvided,
+      );
+    }
 
     final loginInfo = context.read<AuthProvider>().loginInfo!;
     final storyProvider = context.read<StoryProvider>();
     final imageFile = imagePickerProvider.imageFile;
 
-    final imageFileByte = await imageFile!.readAsBytes();
+    if (imageFile == null) {
+      navToHome();
+      return;
+    }
+
+    final imageFileByte = await imageFile.readAsBytes();
     final imageFilename = imageFile.name;
 
     try {
@@ -154,9 +170,14 @@ class _PostStoryPageState extends State<PostStoryPage> {
 
       imagePickerProvider.imageFile = null;
 
-      navigateTo(AppRoutePaths.stories());
+      storiesRouteQueries.page = 1;
+      navToHome(isQueriesProvided: false);
     } on HttpResponseException catch (e) {
-      showSnackBar(SnackBar(content: Text('${e.message}')));
+      showSnackBar(SnackBar(
+        content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
+      ));
+    } catch (e) {
+      showSnackBar(const SnackBar(content: Text('No internet connection')));
     }
   }
 }

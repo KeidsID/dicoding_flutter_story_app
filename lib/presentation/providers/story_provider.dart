@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
@@ -7,7 +9,20 @@ import '../../domain/use_cases/get_stories.dart';
 import '../../domain/use_cases/get_story_detail.dart';
 import '../../domain/use_cases/post_story.dart';
 
-enum StoryProviderState { loading, success, fail, init }
+enum StoryProviderState {
+  /// Asynchronous process running.
+  loading,
+  success,
+
+  /// On provider construct
+  init,
+
+  /// On [HttpResponseException] thrown.
+  serverFail,
+
+  /// On [SocketException] thrown.
+  connectionFail,
+}
 
 class StoryProvider extends ChangeNotifier {
   final GetStories _getStories;
@@ -38,7 +53,7 @@ class StoryProvider extends ChangeNotifier {
   /// Fetch stories from the API, then update [state] and [stories] based on the
   /// result.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs.
+  /// Will throw an [Exception] if an error occurs.
   Future<void> fetchStories({
     required String token,
     int? page,
@@ -56,8 +71,11 @@ class StoryProvider extends ChangeNotifier {
       );
 
       _setState = StoryProviderState.success;
-    } catch (e) {
-      _setState = StoryProviderState.fail;
+    } on HttpResponseException {
+      _setState = StoryProviderState.serverFail;
+      rethrow;
+    } on SocketException {
+      _setState = StoryProviderState.connectionFail;
       rethrow;
     }
   }
@@ -65,7 +83,7 @@ class StoryProvider extends ChangeNotifier {
   /// Fetch the details of the requested story (based on the story id), then
   /// update [state] and [story] based on the result.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs.
+  /// Will throw an [Exception] if an error occurs.
   Future<void> fetchStoryDetail({
     required String token,
     required String id,
@@ -76,8 +94,11 @@ class StoryProvider extends ChangeNotifier {
       _story = await _getStoryDetail.execute(token: token, id: id);
 
       _setState = StoryProviderState.success;
-    } catch (e) {
-      _setState = StoryProviderState.fail;
+    } on HttpResponseException {
+      _setState = StoryProviderState.serverFail;
+      rethrow;
+    } on SocketException {
+      _setState = StoryProviderState.connectionFail;
       rethrow;
     }
   }
@@ -87,7 +108,7 @@ class StoryProvider extends ChangeNotifier {
   ///
   /// Note that [fetchStories] only takes token parameters in this method.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs.
+  /// Will throw an [Exception] if an error occurs.
   Future<void> postStory({
     required String token,
     required String description,
@@ -109,8 +130,11 @@ class StoryProvider extends ChangeNotifier {
       );
 
       await fetchStories(token: token);
-    } catch (e) {
-      _setState = StoryProviderState.fail;
+    } on HttpResponseException {
+      _setState = StoryProviderState.serverFail;
+      rethrow;
+    } on SocketException {
+      _setState = StoryProviderState.connectionFail;
       rethrow;
     }
   }

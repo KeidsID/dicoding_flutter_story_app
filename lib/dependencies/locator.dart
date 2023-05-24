@@ -14,12 +14,14 @@ import '../domain/use_cases/get_stories.dart';
 import '../domain/use_cases/get_story_detail.dart';
 import '../domain/use_cases/post_story.dart';
 import '../presentation/providers/auth_provider.dart';
+import '../presentation/providers/cameras_provider.dart';
 import '../presentation/providers/picked_image_provider.dart';
 import '../presentation/providers/stories_route_queries_provider.dart';
 import '../presentation/providers/story_provider.dart';
 
-part 'services_init.dart';
-part 'story_repository_init.dart';
+part 'initializers/provider_init.dart';
+part 'initializers/services_init.dart';
+part 'initializers/story_repository_init.dart';
 
 /// Call [locator] to get desired dependencies.
 ///
@@ -39,26 +41,7 @@ part 'story_repository_init.dart';
 final locator = GetIt.instance;
 
 Future<void> init() async {
-  locator.registerLazySingleton(() {
-    return AuthProvider(
-      doLogin: locator(),
-      doLogout: locator(),
-      doRegister: locator(),
-      getLoginToken: locator(),
-    );
-  });
-
-  locator.registerFactory(() {
-    return StoryProvider(
-      getStories: locator(),
-      getStoryDetail: locator(),
-      postStory: locator(),
-    );
-  });
-
-  locator.registerFactory(() => StoriesRouteQueriesProvider());
-  locator.registerFactory(() => PickedImageProvider());
-
-  _storyRepositoryInit();
+  _providerInit();
   await _servicesInit();
+  _storyRepositoryInit();
 }

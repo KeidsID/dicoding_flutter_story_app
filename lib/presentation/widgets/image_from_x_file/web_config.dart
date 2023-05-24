@@ -1,8 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../image_from_network.dart';
+
 class ImageFromXFile extends StatelessWidget {
+  /// Creates a widget that displays an image obtained from [XFile]
+  /// (Picked image from image_picker/camera package).
   const ImageFromXFile(
     this.file, {
     super.key,
@@ -18,7 +21,7 @@ class ImageFromXFile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CachedNetworkImage(
+    return ImageFromNetwork(
       imageUrl: file.path,
       width: width,
       height: height,

@@ -2,8 +2,8 @@ part of '../stories_route.dart';
 
 final _cameraRoute = GoRoute(
   path: 'camera',
-  builder: (_, __) {
-    final List<CameraDescription> cameras = global_data.deviceCameras;
+  builder: (context, _) {
+    final cameras = context.read<CamerasProvider>().cameras;
 
     if (cameras.isEmpty) return const CameraNotFoundPage();
 

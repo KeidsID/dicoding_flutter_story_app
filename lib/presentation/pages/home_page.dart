@@ -7,9 +7,12 @@ import 'package:provider/provider.dart';
 import '../../domain/entities/login_info.dart';
 import '../../router/app_route_paths.dart';
 import '../providers/auth_provider.dart';
+import '../providers/cameras_provider.dart';
 import '../providers/stories_route_queries_provider.dart';
 import '../providers/story_provider.dart';
-import '../widgets/stories_list_item.dart';
+import '../widgets/app_alert_dialog.dart';
+import '../widgets/custom_card.dart';
+import '../widgets/story_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({
@@ -19,9 +22,13 @@ class HomePage extends StatefulWidget {
   });
 
   /// The current page of stories.
+  ///
+  /// Provided by router web (route builder).
   final int? page;
 
   /// Number of stories to load on each page.
+  ///
+  /// Provided by router web (route builder).
   final int? size;
 
   @override
@@ -50,7 +57,9 @@ class _HomePageState extends State<HomePage> {
         queriesProvider.page = widget.page ?? 1;
         queriesProvider.size = widget.size ?? 10;
       } on HttpResponseException catch (e) {
-        debugPrint('$e ${e.message}');
+        debugPrint('$e - ${e.message}');
+      } catch (e) {
+        debugPrint('$e');
       }
     });
   }
@@ -97,7 +106,7 @@ class _HomePageState extends State<HomePage> {
           floatingActionButton: Padding(
             padding: const EdgeInsets.all(16.0),
             child: FloatingActionButton.extended(
-              onPressed: navToPostStory,
+              onPressed: () => navToPostStory(),
               icon: const Icon(Icons.add),
               label: const Text('Post Story'),
             ),
@@ -107,8 +116,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void navToPostStory() {
+  Future<void> navToPostStory() async {
     final showSnackBar = context.scaffoldMessenger.showSnackBar;
+    final navigateTo = context.go;
+
+    final camerasProvider = context.read<CamerasProvider>();
 
     final isMacOS = defaultTargetPlatform == TargetPlatform.macOS;
     final isLinux = defaultTargetPlatform == TargetPlatform.linux;
@@ -121,7 +133,9 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    context.go(AppRoutePaths.camera);
+    await camerasProvider.fetchCameras();
+
+    navigateTo(AppRoutePaths.camera);
   }
 }
 
@@ -152,7 +166,7 @@ class _PageDrawer extends StatelessWidget {
             ]),
           ),
           ListTile(
-            onTap: onLogOutTileTap(context),
+            onTap: () => logout(context),
             leading: const Icon(Icons.logout),
             title: const Text('Log out'),
           ),
@@ -161,20 +175,20 @@ class _PageDrawer extends StatelessWidget {
     );
   }
 
-  VoidCallback onLogOutTileTap(BuildContext context) {
-    return () async {
-      final showSnackBar = context.scaffoldMessenger.showSnackBar;
+  Future<void> logout(BuildContext context) async {
+    final showSnackBar = context.scaffoldMessenger.showSnackBar;
 
-      try {
-        await unListenAuthProv.logout();
-      } on HttpResponseException catch (e) {
-        showSnackBar(SnackBar(
-          content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
-        ));
-      }
-    };
+    try {
+      await unListenAuthProv.logout();
+    } on HttpResponseException catch (e) {
+      showSnackBar(SnackBar(
+        content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
+      ));
+    }
   }
 }
+
+enum _StoriesPageNavigateTo { nextPage, previousPage, homePage }
 
 class _PageBody extends StatelessWidget {
   const _PageBody(
@@ -197,23 +211,31 @@ class _PageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<StoryProvider>(
-      builder: (context, storyProv, child) {
+    return Consumer2<StoryProvider, StoriesRouteQueriesProvider>(
+      builder: (context, storyProv, storiesRouteQueries, child) {
+        final isConnectionFail =
+            storyProv.state == StoryProviderState.connectionFail;
+        final isFail = storyProv.state == StoryProviderState.serverFail;
         final isLoading = storyProv.state == StoryProviderState.loading;
-        final isFail = storyProv.state == StoryProviderState.fail;
+
         final stories = storyProv.stories;
 
         if (isLoading) return child!;
 
-        if (stories.isEmpty || isFail) {
+        if (stories.isEmpty || isFail || isConnectionFail) {
           return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text((isFail) ? 'Fail to fetch stories' : 'No Data'),
-                const SizedBox(height: 16.0),
-                ElevatedButton(
-                  onPressed: () => refreshStoryProv(context),
+            child: AppAlertDialog(
+              content: Text(
+                (isFail)
+                    ? 'Fail to fetch stories'
+                    : (isConnectionFail)
+                        ? 'No internet connection'
+                        : 'No Data',
+              ),
+              isDefaultActionIncluded: false,
+              actions: [
+                TextButton(
+                  onPressed: () => refreshStories(context),
                   child: const Text('Refresh'),
                 ),
               ],
@@ -221,18 +243,109 @@ class _PageBody extends StatelessWidget {
           );
         }
 
+        final currentPage = storiesRouteQueries.page;
+        final isStoriesFirstPage = currentPage == 1;
+        final isStoriesSecondPage = currentPage == 2;
+
+        final gridItemCount = isStoriesFirstPage
+            ? stories.length + 1
+            : isStoriesSecondPage
+                ? stories.length + 2
+                : stories.length + 3;
+
         return SizedBox.expand(
           child: Center(
             child: SizedBox(
               width: maxWidth,
+              height: context.screenSize.height,
               child: GridView.builder(
                 gridDelegate: gridDelegate,
-                itemCount: stories.length,
+                itemCount: gridItemCount,
                 padding: padding,
                 itemBuilder: (context, index) {
-                  final story = stories[index];
+                  final homePageCardConditions =
+                      !isStoriesFirstPage && !isStoriesSecondPage && index == 0;
 
-                  return StoriesListItem(
+                  final previousPageCardConditions = !isStoriesFirstPage &&
+                      ((isStoriesSecondPage) ? index == 0 : index == 1);
+
+                  final nextPageCardConditions = index == gridItemCount - 1;
+
+                  if (homePageCardConditions) {
+                    return CustomCard(
+                      onTap: () => storiesPageNavigator(
+                        context,
+                        navigateTo: _StoriesPageNavigateTo.homePage,
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Back to home',
+                              style: context.textTheme.headlineMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8.0),
+                            const Icon(Icons.home_rounded, size: 40.0),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (previousPageCardConditions) {
+                    return CustomCard(
+                      onTap: () => storiesPageNavigator(
+                        context,
+                        navigateTo: _StoriesPageNavigateTo.previousPage,
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Previous page',
+                              style: context.textTheme.headlineMedium,
+                            ),
+                            const SizedBox(height: 8.0),
+                            const Icon(Icons.arrow_back_rounded, size: 40.0),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (nextPageCardConditions) {
+                    return CustomCard(
+                      onTap: () => storiesPageNavigator(
+                        context,
+                        navigateTo: _StoriesPageNavigateTo.nextPage,
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Next page',
+                              style: context.textTheme.headlineMedium,
+                            ),
+                            const SizedBox(height: 8.0),
+                            const Icon(Icons.arrow_forward_rounded, size: 40.0),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  final storyFilteredIndex = (isStoriesFirstPage)
+                      ? index
+                      : (isStoriesSecondPage)
+                          ? index - 1
+                          : index - 2;
+                  final story = stories[storyFilteredIndex];
+
+                  return StoryCard(
                     story,
                     onTap: () => navToStoryDetailPage(context, story.id),
                   );
@@ -246,7 +359,7 @@ class _PageBody extends StatelessWidget {
     );
   }
 
-  Future<void> refreshStoryProv(BuildContext context) async {
+  Future<void> refreshStories(BuildContext context) async {
     final showSnackBar = context.scaffoldMessenger.showSnackBar;
 
     final storyProv = context.read<StoryProvider>();
@@ -264,10 +377,49 @@ class _PageBody extends StatelessWidget {
           e.message ?? '${e.statusCode}: ${e.name}',
         ),
       ));
+    } catch (e) {
+      showSnackBar(const SnackBar(content: Text('No internet connection')));
     }
   }
 
   void navToStoryDetailPage(BuildContext context, String storyId) {
     context.go(AppRoutePaths.storyDetail(storyId));
+  }
+
+  Future<void> storiesPageNavigator(
+    BuildContext context, {
+    required _StoriesPageNavigateTo navigateTo,
+  }) async {
+    final showSnackBar = context.scaffoldMessenger.showSnackBar;
+
+    final storyProv = context.read<StoryProvider>();
+    final storiesRouteQueries = context.read<StoriesRouteQueriesProvider>();
+
+    final targetPage = (navigateTo == _StoriesPageNavigateTo.nextPage)
+        ? storiesRouteQueries.page + 1
+        : (navigateTo == _StoriesPageNavigateTo.previousPage)
+            ? storiesRouteQueries.page - 1
+            : 1;
+
+    // Only update route info
+    context.go(AppRoutePaths.stories(
+      page: targetPage,
+    ));
+
+    // load new content and store the page state into
+    // provider.
+    storiesRouteQueries.page = targetPage;
+
+    try {
+      await storyProv.fetchStories(token: loginInfo.token, page: targetPage);
+    } on HttpResponseException catch (e) {
+      showSnackBar(SnackBar(
+        content: Text(
+          e.message ?? '${e.statusCode}: ${e.name}',
+        ),
+      ));
+    } catch (e) {
+      showSnackBar(const SnackBar(content: Text('No internet connection')));
+    }
   }
 }
