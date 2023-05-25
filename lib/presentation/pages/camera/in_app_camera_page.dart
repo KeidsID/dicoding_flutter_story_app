@@ -1,6 +1,5 @@
 import 'package:camera/camera.dart';
 import 'package:core/core.dart';
-import 'package:dicoding_flutter_story_app/router/utils/navigate_to_stories_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../../router/app_route_paths.dart';
+import '../../../router/utils/navigate_to_stories_page.dart';
 import '../../providers/picked_image_provider.dart';
 import '../../widgets/image_from_x_file/image_from_x_file.dart';
 
@@ -82,96 +82,103 @@ class _InAppCameraPageState extends State<InAppCameraPage>
   Widget build(BuildContext context) {
     final isCamResultNull = cameraResult == null;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: onAppBarLeadingTap(),
-          icon: Icon(isCamResultNull ? Icons.arrow_back : Icons.clear),
-          tooltip: isCamResultNull
-              ? MaterialLocalizations.of(context).backButtonTooltip
-              : 'Discard',
-        ),
-        actions: !isCamResultNull
-            ? null
-            : [
-                (kIsWeb || defaultTargetPlatform == TargetPlatform.windows)
-                    ? _CameraSwitchDesktop(
-                        value: cameraController?.description,
-                        items: widget.cameras,
-                        onChanged: (value) => setCamController(value!),
-                      )
-                    : IconButton(
-                        onPressed: onMobileCamSwitch,
-                        icon: const Icon(Icons.cameraswitch_outlined),
-                      ),
-              ],
-      ),
-      body: Center(
-        child: SizedBox(
-          width: 900.0,
-          height: context.screenSize.height,
-          child: !isCamResultNull
-              ? ImageFromXFile(cameraResult!, fit: BoxFit.cover)
-              : Stack(
-                  children: [
-                    // Camera
-                    (cameraController == null || isCamInitialized == null)
-                        ? const Center(child: CircularProgressIndicator())
-                        : SizedBox.expand(
-                            child: (isCamInitialized ?? false)
-                                ? CameraPreview(cameraController!)
-                                : const HttpErrorPage(
-                                    statusCode: 501,
-                                    message:
-                                        'The camera failed to initialize, please change to another camera if available.',
-                                  ),
-                          ),
+    return WillPopScope(
+      onWillPop: () async {
+        onAppBarLeadingTapCallback()?.call();
 
-                    // Upload image button
-                    SizedBox.expand(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            FilledButton.tonalIcon(
-                              onPressed: pickImageFromGallery,
-                              icon: const Icon(Icons.image_rounded),
-                              label: const Text('Upload'),
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: onAppBarLeadingTapCallback(),
+            icon: Icon(isCamResultNull ? Icons.arrow_back : Icons.clear),
+            tooltip: isCamResultNull
+                ? MaterialLocalizations.of(context).backButtonTooltip
+                : 'Discard',
+          ),
+          actions: !isCamResultNull
+              ? null
+              : [
+                  (kIsWeb || defaultTargetPlatform == TargetPlatform.windows)
+                      ? _CameraSwitchDesktop(
+                          value: cameraController?.description,
+                          items: widget.cameras,
+                          onChanged: (value) => setCamController(value!),
+                        )
+                      : IconButton(
+                          onPressed: onMobileCamSwitch,
+                          icon: const Icon(Icons.cameraswitch_outlined),
+                        ),
+                ],
+        ),
+        body: Center(
+          child: SizedBox(
+            width: 900.0,
+            height: context.screenSize.height,
+            child: !isCamResultNull
+                ? ImageFromXFile(cameraResult!, fit: BoxFit.cover)
+                : Stack(
+                    children: [
+                      // Camera
+                      (cameraController == null || isCamInitialized == null)
+                          ? const Center(child: CircularProgressIndicator())
+                          : SizedBox.expand(
+                              child: (isCamInitialized ?? false)
+                                  ? CameraPreview(cameraController!)
+                                  : const HttpErrorPage(
+                                      statusCode: 501,
+                                      message:
+                                          'The camera failed to initialize, please change to another camera if available.',
+                                    ),
                             ),
-                            const SizedBox(height: 15.0),
-                          ],
+
+                      // Upload image button
+                      SizedBox.expand(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              FilledButton.tonalIcon(
+                                onPressed: pickImageFromGallery,
+                                icon: const Icon(Icons.image_rounded),
+                                label: const Text('Upload'),
+                              ),
+                              const SizedBox(height: 15.0),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+          ),
+        ),
+        bottomNavigationBar: SizedBox(
+          height: kToolbarHeight,
+          child: (isCamResultNull)
+              ? null
+              : Center(
+                  child: FilledButton(
+                    onPressed: onNextButtonTap,
+                    child: const Text('Next'),
+                  ),
                 ),
         ),
-      ),
-      bottomNavigationBar: SizedBox(
-        height: kToolbarHeight,
-        child: (isCamResultNull)
+        floatingActionButton: !isCamResultNull
             ? null
-            : Center(
-                child: FilledButton(
-                  onPressed: onNextButtonTap,
-                  child: const Text('Next'),
-                ),
+            : FloatingActionButton.large(
+                onPressed:
+                    (isCamInitialized ?? false) ? takePictureFromCamera : () {},
+                child: const Icon(Icons.camera_alt),
               ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
-      floatingActionButton: !isCamResultNull
-          ? null
-          : FloatingActionButton.large(
-              onPressed:
-                  (isCamInitialized ?? false) ? takePictureFromCamera : () {},
-              child: const Icon(Icons.camera_alt),
-            ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
-  VoidCallback? onAppBarLeadingTap() {
+  VoidCallback? onAppBarLeadingTapCallback() {
     return cameraResult == null
         ? () => navigateToStoriesPage(context)
         : () => setState(() => cameraResult = null);
@@ -201,6 +208,14 @@ class _InAppCameraPageState extends State<InAppCameraPage>
     });
   }
 
+  void onNextButtonTap() {
+    final imagePickerProv = context.read<PickedImageProvider>();
+
+    imagePickerProv.imageFile = cameraResult;
+
+    context.go(AppRoutePaths.postStory);
+  }
+
   Future<void> pickImageFromGallery() async {
     final navigateTo = context.go;
 
@@ -221,14 +236,6 @@ class _InAppCameraPageState extends State<InAppCameraPage>
     });
 
     navigateTo(AppRoutePaths.postStory);
-  }
-
-  void onNextButtonTap() {
-    final imagePickerProv = context.read<PickedImageProvider>();
-
-    imagePickerProv.imageFile = cameraResult;
-
-    context.go(AppRoutePaths.postStory);
   }
 }
 

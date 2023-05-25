@@ -5,4 +5,5 @@ Future<void> _servicesInit() async {
 
   locator.registerLazySingleton(() => ApiService(http.Client()));
   locator.registerLazySingleton(() => LoginInfoPreferences(sharedPreferences));
+  locator.registerLazySingleton(() => ThemeModePreferences(sharedPreferences));
 }

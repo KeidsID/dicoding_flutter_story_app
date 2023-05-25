@@ -11,7 +11,9 @@ class GetStories {
 
   /// Fetch stories from the API.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// otherwise it will throw another [Exception] (such as [SocketException]) if
+  /// an internal error occurs.
   Future<List<Story>> execute({
     required String token,
     int? page,

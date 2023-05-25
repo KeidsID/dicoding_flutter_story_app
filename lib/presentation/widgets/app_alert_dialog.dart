@@ -1,5 +1,6 @@
-import 'package:dicoding_flutter_story_app/router/utils/navigate_to_stories_page.dart';
 import 'package:flutter/material.dart';
+
+import '../../router/utils/navigate_to_stories_page.dart';
 
 class AppAlertDialog extends StatelessWidget {
   /// Creates an alert dialog with default action.

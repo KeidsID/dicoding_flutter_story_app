@@ -7,9 +7,9 @@ class DoLogin {
 
   /// Log in to Dicoding Story API. The log in token will be cached as well.
   ///
-  /// Return username.
-  ///
-  /// Will throw a [HttpResponseException] if an error occurs.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// otherwise it will throw another [Exception] (such as [SocketException]) if
+  /// an internal error occurs.
   Future<void> execute({
     required String email,
     required String password,

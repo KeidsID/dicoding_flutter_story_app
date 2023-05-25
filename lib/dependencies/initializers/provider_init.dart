@@ -10,6 +10,12 @@ void _providerInit() {
     );
   });
 
+  locator.registerFactory(() {
+    return ThemeModeProvider(
+      themeModePreferences: locator(),
+    );
+  });
+
   locator.registerFactory(() => CamerasProvider());
   locator.registerFactory(() => PickedImageProvider());
   locator.registerFactory(() => StoriesRouteQueriesProvider());

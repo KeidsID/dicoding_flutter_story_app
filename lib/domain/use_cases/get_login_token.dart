@@ -9,6 +9,8 @@ class GetLoginToken {
 
   /// Fetch log in token from the app cache if available.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// otherwise it will throw another [Exception] (such as [SocketException]) if
+  /// an internal error occurs.
   Future<LoginInfo?> execute() => repository.getLoginInfo();
 }

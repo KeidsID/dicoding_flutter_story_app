@@ -64,7 +64,9 @@ class AuthProvider extends ChangeNotifier {
   /// Log in to Dicoding Story API, then update [state], [loginInfo], and
   /// [username] based on the results.
   ///
-  /// Will throw an [Exception] if an error occurs.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// otherwise it will throw another [Exception] (such as [SocketException]) if
+  /// an internal error occurs.
   Future<void> login({required String email, required String password}) async {
     _setState = AuthProviderState.loading;
 
@@ -75,7 +77,7 @@ class AuthProvider extends ChangeNotifier {
     } on HttpResponseException {
       _setState = AuthProviderState.serverFail;
       rethrow;
-    } on SocketException {
+    } catch (e) {
       _setState = AuthProviderState.connectionFail;
       rethrow;
     }
@@ -101,7 +103,9 @@ class AuthProvider extends ChangeNotifier {
   /// Register as new user to Dicoding Story API, then call [login] after the
   /// register process is complete.
   ///
-  /// Will throw an [Exception] if an error occurs.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// otherwise it will throw another [Exception] (such as [SocketException]) if
+  /// an internal error occurs.
   Future<void> register({
     required String name,
     required String email,
@@ -116,7 +120,7 @@ class AuthProvider extends ChangeNotifier {
     } on HttpResponseException {
       _setState = AuthProviderState.serverFail;
       rethrow;
-    } on SocketException {
+    } catch (e) {
       _setState = AuthProviderState.connectionFail;
       rethrow;
     }

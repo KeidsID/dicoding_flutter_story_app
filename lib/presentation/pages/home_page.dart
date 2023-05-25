@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/entities/login_info.dart';
@@ -10,6 +11,7 @@ import '../providers/auth_provider.dart';
 import '../providers/cameras_provider.dart';
 import '../providers/stories_route_queries_provider.dart';
 import '../providers/story_provider.dart';
+import '../providers/theme_mode_provider.dart';
 import '../widgets/app_alert_dialog.dart';
 import '../widgets/custom_card.dart';
 import '../widgets/story_card.dart';
@@ -165,10 +167,43 @@ class _PageDrawer extends StatelessWidget {
               Text('Welcome back ${loginInfo.name}'),
             ]),
           ),
+          Builder(
+            builder: (context) => ListTile(
+              leading: Icon(
+                context.isDarkMode
+                    ? Icons.dark_mode_rounded
+                    : Icons.light_mode_rounded,
+              ),
+              title: const Text('App theme'),
+              trailing: Consumer<ThemeModeProvider>(
+                builder: (context, themeModeProv, _) {
+                  return DropdownButton<ThemeMode>(
+                    value: themeModeProv.themeMode,
+                    items: ThemeMode.values.map((e) {
+                      return DropdownMenuItem(
+                        value: e,
+                        child: Text(e.name),
+                      );
+                    }).toList(),
+                    onChanged: (value) async {
+                      if (value == null) return;
+
+                      await themeModeProv.setThemeMode(value);
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
           ListTile(
             onTap: () => logout(context),
             leading: const Icon(Icons.logout),
             title: const Text('Log out'),
+          ),
+          ListTile(
+            onTap: () => aboutAppDialog(context),
+            leading: const Icon(Icons.info_outline_rounded),
+            title: const Text('About app'),
           ),
         ],
       ),
@@ -185,6 +220,32 @@ class _PageDrawer extends StatelessWidget {
         content: Text(e.message ?? '${e.statusCode}: ${e.name}'),
       ));
     }
+  }
+
+  Future<void> aboutAppDialog(BuildContext context) async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    final applicationName = packageInfo.appName;
+    final appVersion = packageInfo.version;
+
+    void showAppAboutDialog() {
+      showAboutDialog(
+        context: context,
+        applicationName: applicationName,
+        applicationIcon: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Image.asset(
+            'assets/app-icon.png',
+            width: 60,
+            height: 60,
+          ),
+        ),
+        applicationLegalese:
+            'Projects from dicoding.com as a practice in advanced navigation, and use of media (audio, images, and video).',
+        applicationVersion: 'v$appVersion-alpha',
+      );
+    }
+
+    showAppAboutDialog();
   }
 }
 
@@ -213,14 +274,15 @@ class _PageBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<StoryProvider, StoriesRouteQueriesProvider>(
       builder: (context, storyProv, storiesRouteQueries, child) {
-        final isConnectionFail =
-            storyProv.state == StoryProviderState.connectionFail;
-        final isFail = storyProv.state == StoryProviderState.serverFail;
-        final isLoading = storyProv.state == StoryProviderState.loading;
+        final state = storyProv.storiesState;
+        final isConnectionFail = state == StoryProviderState.connectionFail;
+        final isFail = state == StoryProviderState.serverFail;
+        final isInit = state == StoryProviderState.init;
+        final isLoading = state == StoryProviderState.loading;
 
         final stories = storyProv.stories;
 
-        if (isLoading) return child!;
+        if (isLoading || isInit) return child!;
 
         if (stories.isEmpty || isFail || isConnectionFail) {
           return Center(

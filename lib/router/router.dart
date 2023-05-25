@@ -12,7 +12,7 @@ import 'routes/stories_route/stories_route.dart';
 
 /// Router for the application.
 final router = GoRouter(
-  initialLocation: AppRoutePaths.stories(),
+  initialLocation: AppRoutePaths.login,
   refreshListenable: dependencies.locator<AuthProvider>(),
   routerNeglect: true,
   errorBuilder: (_, state) {

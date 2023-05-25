@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -49,14 +47,15 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
     return Scaffold(
       body: Consumer<StoryProvider>(
         builder: (context, storyProv, child) {
-          final isFail = storyProv.state == StoryProviderState.serverFail;
-          final isLoading = storyProv.state == StoryProviderState.loading;
-          final isProvFirstInit = storyProv.state == StoryProviderState.init;
-          final isSuccess = storyProv.state == StoryProviderState.success;
+          final state = storyProv.storyState;
+          final isFail = state == StoryProviderState.serverFail;
+          final isInit = state == StoryProviderState.init;
+          final isLoading = state == StoryProviderState.loading;
+          final isSuccess = state == StoryProviderState.success;
 
           final story = storyProv.story;
 
-          if (isLoading || isProvFirstInit) return child!;
+          if (isLoading || isInit) return child!;
 
           if (!(isSuccess)) {
             return Center(

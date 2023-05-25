@@ -9,7 +9,9 @@ class PostStory {
 
   /// Posting story to the API.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// and will throw another [Exception] (such as [SocketException]) if an
+  /// internal error occurs.
   Future<void> execute({
     required String token,
     required String description,

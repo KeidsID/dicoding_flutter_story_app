@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/api/api_service.dart';
 import '../data/cache/login_info_preferences.dart';
+import '../data/cache/theme_mode_preferences.dart';
 import '../data/repositories/story_repository_impl.dart';
 import '../domain/repositories/story_repository.dart';
 import '../domain/use_cases/do_login.dart';
@@ -18,6 +19,7 @@ import '../presentation/providers/cameras_provider.dart';
 import '../presentation/providers/picked_image_provider.dart';
 import '../presentation/providers/stories_route_queries_provider.dart';
 import '../presentation/providers/story_provider.dart';
+import '../presentation/providers/theme_mode_provider.dart';
 
 part 'initializers/provider_init.dart';
 part 'initializers/services_init.dart';

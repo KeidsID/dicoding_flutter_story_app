@@ -1,17 +1,15 @@
-import 'dart:io';
-
 import 'package:core/core.dart';
-import 'package:dicoding_flutter_story_app/presentation/providers/stories_route_queries_provider.dart';
-import 'package:dicoding_flutter_story_app/presentation/widgets/app_alert_dialog.dart';
-import 'package:dicoding_flutter_story_app/router/utils/navigate_to_stories_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../router/app_route_paths.dart';
+import '../../router/utils/navigate_to_stories_page.dart';
 import '../providers/auth_provider.dart';
 import '../providers/picked_image_provider.dart';
+import '../providers/stories_route_queries_provider.dart';
 import '../providers/story_provider.dart';
+import '../widgets/app_alert_dialog.dart';
 import '../widgets/image_from_x_file/image_from_x_file.dart';
 
 class PostStoryPage extends StatefulWidget {
@@ -56,55 +54,82 @@ class _PostStoryPageState extends State<PostStoryPage> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: onAppBarLeadingTap,
-          icon: const Icon(Icons.clear),
-          tooltip: 'Discard',
-        ),
-        title: const Text("Post Story"),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Container(
-            width: 900.0,
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                ImageFromXFile(
-                  imageFile,
-                  width: 900.0,
-                  height: 300.0,
-                  fit: BoxFit.cover,
-                ),
-                TextField(
-                  controller: descriptionController,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  decoration: const InputDecoration(
-                    hintText: 'Tell your story',
-                  ),
-                  // minLines: 1,
-                  maxLines: 5,
-                ),
-                const SizedBox(height: 16.0),
-                Consumer<StoryProvider>(
-                  builder: (context, storyProv, child) {
-                    if (storyProv.state == StoryProviderState.loading) {
-                      return child!;
-                    }
+    return WillPopScope(
+      onWillPop: () async {
+        onAppBarLeadingTap();
 
-                    return FilledButton.icon(
-                      onPressed: onPostStory,
-                      icon: const Icon(Icons.cloud_upload_rounded),
-                      label: const Text('Post'),
-                    );
-                  },
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-              ],
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: onAppBarLeadingTap,
+            icon: const Icon(Icons.clear),
+            tooltip: 'Discard',
+          ),
+          title: const Text("Post Story"),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            child: Container(
+              width: 900.0,
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  ImageFromXFile(
+                    imageFile,
+                    width: 900.0,
+                    height: 300.0,
+                    fit: BoxFit.cover,
+                  ),
+                  TextField(
+                    controller: descriptionController,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    decoration: const InputDecoration(
+                      hintText: 'Tell your story',
+                    ),
+                    // minLines: 1,
+                    maxLines: 5,
+                  ),
+                  const SizedBox(height: 16.0),
+                  Consumer<StoryProvider>(
+                    builder: (context, storyProv, child) {
+                      final showSnackBar =
+                          context.scaffoldMessenger.showSnackBar;
+
+                      final postState = storyProv.postStoryState;
+                      final storiesState = storyProv.storiesState;
+
+                      final isPostSuccess =
+                          postState == StoryProviderState.success;
+                      final isLoading =
+                          postState == StoryProviderState.loading ||
+                              storiesState == StoryProviderState.loading;
+
+                      if (isPostSuccess) {
+                        Future.microtask(() {
+                          showSnackBar(const SnackBar(
+                            content: Text(
+                              'Story has been posted. Redirects to the home page',
+                            ),
+                          ));
+                        });
+                      }
+
+                      if (isLoading) return child!;
+
+                      return FilledButton.icon(
+                        onPressed: onPostStory,
+                        icon: const Icon(Icons.cloud_upload_rounded),
+                        label: const Text('Post'),
+                      );
+                    },
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -140,7 +165,8 @@ class _PostStoryPageState extends State<PostStoryPage> {
 
   Future<void> onPostStory() async {
     final showSnackBar = context.scaffoldMessenger.showSnackBar;
-    final storiesRouteQueries = context.read<StoriesRouteQueriesProvider>();
+
+    // To avoid using context on async gap.
     void navToHome({bool isQueriesProvided = true}) {
       return navigateToStoriesPage(
         context,
@@ -149,7 +175,9 @@ class _PostStoryPageState extends State<PostStoryPage> {
     }
 
     final loginInfo = context.read<AuthProvider>().loginInfo!;
+    final storiesRouteQueries = context.read<StoriesRouteQueriesProvider>();
     final storyProvider = context.read<StoryProvider>();
+
     final imageFile = imagePickerProvider.imageFile;
 
     if (imageFile == null) {
@@ -172,6 +200,9 @@ class _PostStoryPageState extends State<PostStoryPage> {
 
       storiesRouteQueries.page = 1;
       navToHome(isQueriesProvided: false);
+
+      // reset post story state
+      storyProvider.postStoryState = StoryProviderState.init;
     } on HttpResponseException catch (e) {
       showSnackBar(SnackBar(
         content: Text(e.message ?? '${e.statusCode}: ${e.name}'),

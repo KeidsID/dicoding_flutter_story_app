@@ -22,8 +22,9 @@ class ApiService {
   ///
   /// Method to register as an app user.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs from
-  /// **the server**. Other [Exception] or [Error] may thrown.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// otherwise it will throw another [Exception] (such as [SocketException]) if
+  /// an internal error occurs.
   ///
   /// Request Body:
   /// - `name` as `String`
@@ -63,8 +64,9 @@ class ApiService {
   ///
   /// Method to login as a registered user.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs from
-  /// **the server**. Other [Exception] or [Error] may thrown.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// otherwise it will throw another [Exception] (such as [SocketException]) if
+  /// an internal error occurs.
   ///
   /// Request Body:
   /// - `email` as `String`
@@ -95,8 +97,9 @@ class ApiService {
   ///
   /// Methods for adding story to the API.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs from
-  /// **the server**. Other [Exception] or [Error] may thrown.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// otherwise it will throw another [Exception] (such as [SocketException]) if
+  /// an internal error occurs.
   ///
   /// Headers:
   /// - `Content-Type`: `multipart/form-data`
@@ -155,8 +158,9 @@ class ApiService {
   ///
   /// Method to fetch stories from the API.
   ///
-  /// Will throw a [HttpResponseException] if an error occurs from
-  /// **the server**. Other [Exception] or [Error] may thrown.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// otherwise it will throw another [Exception] (such as [SocketException]) if
+  /// an internal error occurs.
   ///
   /// Headers:
   /// - `Authorization`: `Bearer <token>`
@@ -223,8 +227,9 @@ class ApiService {
   ///
   /// Method to fetch the details of the requested story (based on the story id).
   ///
-  /// Will throw a [HttpResponseException] if an error occurs from
-  /// **the server**. Other [Exception] or [Error] may thrown.
+  /// Will throw a [HttpResponseException] if an error occurs from the server,
+  /// otherwise it will throw another [Exception] (such as [SocketException]) if
+  /// an internal error occurs.
   ///
   /// Headers:
   /// - `Authorization`: `Bearer <token>`

@@ -9,6 +9,7 @@ import 'presentation/providers/cameras_provider.dart';
 import 'presentation/providers/picked_image_provider.dart';
 import 'presentation/providers/stories_route_queries_provider.dart';
 import 'presentation/providers/story_provider.dart';
+import 'presentation/providers/theme_mode_provider.dart';
 import 'router/utils/url_strategy/url_strategy.dart';
 
 void main() async {
@@ -27,6 +28,9 @@ void main() async {
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider<AuthProvider>.value(
+        value: dependencies.locator(),
+      ),
+      ChangeNotifierProvider<ThemeModeProvider>.value(
         value: dependencies.locator(),
       ),
       ChangeNotifierProvider<CamerasProvider>.value(

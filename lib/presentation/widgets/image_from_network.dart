@@ -2,7 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class ImageFromNetwork extends StatelessWidget {
-  /// Creates a widget that displays an image obtained from the network.
+  /// Creates a widget that displays an image obtained from the network and
+  /// cache it.
   ///
   /// This widget has a placeholder that will be displayed when the image is
   /// loading, as well as an error widget that will be displayed when the image
@@ -42,7 +43,6 @@ class ImageFromNetwork extends StatelessWidget {
 
     return CachedNetworkImage(
       imageUrl: imageUrl,
-      cacheKey: imageUrl,
       placeholder: (_, __) => const Center(
         child: CircularProgressIndicator(),
       ),
