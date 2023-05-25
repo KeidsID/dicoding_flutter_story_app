@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "dicoding_flutter_story_app" "\0"
+            VALUE "FileDescription", "Dicoding Story" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "dicoding_flutter_story_app" "\0"
+            VALUE "InternalName", "Dicoding Story" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
             VALUE "OriginalFilename", "dicoding_flutter_story_app.exe" "\0"
-            VALUE "ProductName", "dicoding_flutter_story_app" "\0"
+            VALUE "ProductName", "Dicoding Story" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
