@@ -60,7 +60,7 @@ class _InAppCameraPageState extends State<InAppCameraPage>
 
   Future<void> setCamController(CameraDescription camDesc) async {
     final previousController = cameraController;
-    final newController = CameraController(camDesc, ResolutionPreset.max);
+    final newController = CameraController(camDesc, ResolutionPreset.medium);
 
     await previousController?.dispose();
 
