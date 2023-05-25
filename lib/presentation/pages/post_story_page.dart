@@ -54,18 +54,53 @@ class _PostStoryPageState extends State<PostStoryPage> {
       );
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        onAppBarLeadingTap();
+    return Consumer<StoryProvider>(
+      builder: (context, storyProv, child) {
+        return WillPopScope(
+          onWillPop: () async {
+            if (storyProv.postStoryState == StoryProviderState.loading) {
+              Future.microtask(() {
+                context.scaffoldMessenger.showSnackBar(const SnackBar(
+                  content: Text(
+                    'Posting story, please wait for the process to finish first.',
+                  ),
+                ));
+              });
 
-        return false;
+              return false;
+            }
+
+            onAppBarLeadingTap();
+
+            return false;
+          },
+          child: child!,
+        );
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            onPressed: onAppBarLeadingTap,
-            icon: const Icon(Icons.clear),
-            tooltip: 'Discard',
+          leading: Consumer<StoryProvider>(
+            builder: (context, storyProv, child) {
+              return IconButton(
+                onPressed: () {
+                  if (storyProv.postStoryState == StoryProviderState.loading) {
+                    Future.microtask(() {
+                      context.scaffoldMessenger.showSnackBar(const SnackBar(
+                        content: Text(
+                          'Posting story, please wait for the process to finish first.',
+                        ),
+                      ));
+                    });
+
+                    return;
+                  }
+
+                  onAppBarLeadingTap();
+                },
+                icon: const Icon(Icons.clear),
+                tooltip: 'Discard',
+              );
+            },
           ),
           title: const Text("Post Story"),
           centerTitle: true,
@@ -112,7 +147,7 @@ class _PostStoryPageState extends State<PostStoryPage> {
                         Future.microtask(() {
                           showSnackBar(const SnackBar(
                             content: Text(
-                              'Story has been posted. Redirects to the home page',
+                              'Story has been posted.',
                             ),
                           ));
                         });
