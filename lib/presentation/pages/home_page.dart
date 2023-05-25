@@ -241,7 +241,7 @@ class _PageDrawer extends StatelessWidget {
         ),
         applicationLegalese:
             'Projects from dicoding.com as a practice in advanced navigation, and use of media (audio, images, and video).',
-        applicationVersion: 'v$appVersion-alpha',
+        applicationVersion: 'v$appVersion',
       );
     }
 
