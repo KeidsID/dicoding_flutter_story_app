@@ -8,7 +8,7 @@ Google Maps.
 
 API for this project: https://story-api.dicoding.dev/v1/
 
-Build web result: https://dicoding-flutter-story-app.vercel.app
+Build web result: https://dicoding-flutter-story-app-web-build.vercel.app/
 
 ## Tasks:
 
